@@ -1,10 +1,10 @@
 package com.example.basgaane
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,9 +18,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.basgaane.presentation.components.AddMusicDialog
+import com.example.basgaane.presentation.components.AddToPlaylistDialog
+import com.example.basgaane.presentation.components.CreatePlaylistDialog
 import com.example.basgaane.presentation.components.FullPlayerSheet
 import com.example.basgaane.presentation.screens.HomeScreen
 import com.example.basgaane.presentation.theme.BackgroundDark
@@ -50,7 +51,7 @@ class MainActivity : ComponentActivity() {
 fun BasGaaneApp(
     viewModel: MusicViewModel = viewModel()
 ) {
-    // Request notification permission for Android 13+ media controls
+    // Request notification & media audio permissions for Android 13+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { _ -> }
@@ -66,30 +67,57 @@ fun BasGaaneApp(
         permissionLauncher.launch(permissions.toTypedArray())
     }
 
-    val songs by viewModel.filteredSongs.collectAsState()
-    val playerState by viewModel.playerUiState.collectAsState()
+    val allSongs by viewModel.allSongs.collectAsState()
+    val filteredSongs by viewModel.filteredSongs.collectAsState()
+    val selectedTab by viewModel.selectedTab.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchFilterTag by viewModel.searchFilterTag.collectAsState()
+    val playlists by viewModel.playlists.collectAsState()
+    val selectedPlaylist by viewModel.selectedPlaylist.collectAsState()
+
+    val playerState by viewModel.playerUiState.collectAsState()
     val isAddDialogOpen by viewModel.isAddMusicDialogOpen.collectAsState()
+    val isCreatePlaylistDialogOpen by viewModel.isCreatePlaylistDialogOpen.collectAsState()
+    val songForAddToPlaylist by viewModel.songForAddToPlaylist.collectAsState()
     val isFullPlayerVisible by viewModel.isFullPlayerVisible.collectAsState()
     val isUploading by viewModel.isUploading.collectAsState()
-    val uploadStatus by viewModel.uploadStatusMessage.collectAsState()
+    val userMessage by viewModel.userMessage.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uploadStatus) {
-        uploadStatus?.let { message ->
+    // Intercept back button when inspecting a playlist to return to playlists tab
+    BackHandler(enabled = selectedPlaylist != null) {
+        viewModel.selectPlaylist(null)
+    }
+
+    LaunchedEffect(userMessage) {
+        userMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
-            viewModel.clearUploadStatusMessage()
+            viewModel.clearUserMessage()
         }
     }
 
     HomeScreen(
-        songs = songs,
+        selectedTab = selectedTab,
+        onTabSelected = viewModel::selectTab,
+        songs = allSongs,
+        filteredSongs = filteredSongs,
+        searchQuery = searchQuery,
+        searchFilterTag = searchFilterTag,
+        onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onSearchFilterTagChanged = viewModel::onSearchFilterTagChanged,
+        playlists = playlists,
+        selectedPlaylist = selectedPlaylist,
+        onSelectPlaylist = viewModel::selectPlaylist,
+        onCreatePlaylistClick = viewModel::openCreatePlaylistDialog,
+        onDeletePlaylist = viewModel::deletePlaylist,
+        onAddToPlaylistClick = viewModel::openAddToPlaylistDialog,
+        onRemoveSongFromPlaylist = viewModel::removeSongFromPlaylist,
+        onPlayPlaylist = viewModel::playPlaylist,
         currentSong = playerState.currentSong,
         isPlaying = playerState.isPlaying,
         progressMs = playerState.currentPositionMs,
         durationMs = playerState.durationMs,
-        searchQuery = searchQuery,
-        onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onSongClick = viewModel::playSong,
         onPlayPause = viewModel::togglePlayPause,
         onSkipNext = viewModel::skipNext,
@@ -111,6 +139,29 @@ fun BasGaaneApp(
                 audioUri = uri
             )
         }
+    )
+
+    // Create Playlist Dialog Modal
+    CreatePlaylistDialog(
+        isOpen = isCreatePlaylistDialogOpen,
+        onDismiss = viewModel::closeCreatePlaylistDialog,
+        onCreate = { name, desc ->
+            viewModel.createPlaylist(name, desc)
+        }
+    )
+
+    // Add To Playlist Dialog Modal
+    AddToPlaylistDialog(
+        song = songForAddToPlaylist,
+        playlists = playlists,
+        isOpen = songForAddToPlaylist != null,
+        onDismiss = viewModel::closeAddToPlaylistDialog,
+        onAddToPlaylist = { playlist ->
+            songForAddToPlaylist?.let { song ->
+                viewModel.addSongToPlaylist(playlist, song)
+            }
+        },
+        onCreateNewPlaylistClick = viewModel::openCreatePlaylistDialog
     )
 
     // Full Screen Player Bottom Sheet

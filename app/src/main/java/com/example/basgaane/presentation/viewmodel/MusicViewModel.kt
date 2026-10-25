@@ -8,10 +8,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.basgaane.core.player.MusicPlayerController
 import com.example.basgaane.core.player.PlayerUiState
 import com.example.basgaane.data.repository.MusicRepositoryImpl
+import com.example.basgaane.data.repository.PlaylistRepositoryImpl
+import com.example.basgaane.domain.model.Playlist
 import com.example.basgaane.domain.model.Song
+import com.example.basgaane.domain.usecase.AddSongToPlaylistUseCase
 import com.example.basgaane.domain.usecase.AddSongUseCase
+import com.example.basgaane.domain.usecase.CreatePlaylistUseCase
+import com.example.basgaane.domain.usecase.DeletePlaylistUseCase
 import com.example.basgaane.domain.usecase.DeleteSongUseCase
+import com.example.basgaane.domain.usecase.GetPlaylistsUseCase
 import com.example.basgaane.domain.usecase.GetSongsUseCase
+import com.example.basgaane.domain.usecase.RemoveSongFromPlaylistUseCase
 import com.example.basgaane.domain.usecase.SearchSongsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +27,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+enum class HomeTab {
+    HOME,
+    SEARCH,
+    PLAYLISTS
+}
 
 /**
  * Presentation ViewModel coordinating domain Use Cases and exposing UI state.
@@ -30,48 +43,86 @@ class MusicViewModel(
     private val addSongUseCase: AddSongUseCase,
     private val deleteSongUseCase: DeleteSongUseCase,
     private val searchSongsUseCase: SearchSongsUseCase,
+    private val getPlaylistsUseCase: GetPlaylistsUseCase,
+    private val createPlaylistUseCase: CreatePlaylistUseCase,
+    private val deletePlaylistUseCase: DeletePlaylistUseCase,
+    private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
+    private val removeSongFromPlaylistUseCase: RemoveSongFromPlaylistUseCase,
     private val playerController: MusicPlayerController
 ) : AndroidViewModel(application) {
 
     // Default factory constructor for ViewModelProvider
     constructor(application: Application) : this(
         application = application,
-        repository = MusicRepositoryImpl(application)
+        musicRepository = MusicRepositoryImpl(application),
+        playlistRepository = PlaylistRepositoryImpl(application)
     )
 
     private constructor(
         application: Application,
-        repository: MusicRepositoryImpl
+        musicRepository: MusicRepositoryImpl,
+        playlistRepository: PlaylistRepositoryImpl
     ) : this(
         application = application,
-        getSongsUseCase = GetSongsUseCase(repository),
-        addSongUseCase = AddSongUseCase(repository),
-        deleteSongUseCase = DeleteSongUseCase(repository),
+        getSongsUseCase = GetSongsUseCase(musicRepository),
+        addSongUseCase = AddSongUseCase(musicRepository),
+        deleteSongUseCase = DeleteSongUseCase(musicRepository),
         searchSongsUseCase = SearchSongsUseCase(),
+        getPlaylistsUseCase = GetPlaylistsUseCase(playlistRepository),
+        createPlaylistUseCase = CreatePlaylistUseCase(playlistRepository),
+        deletePlaylistUseCase = DeletePlaylistUseCase(playlistRepository),
+        addSongToPlaylistUseCase = AddSongToPlaylistUseCase(playlistRepository),
+        removeSongFromPlaylistUseCase = RemoveSongFromPlaylistUseCase(playlistRepository),
         playerController = MusicPlayerController(application)
     )
 
     val playerUiState: StateFlow<PlayerUiState> = playerController.uiState
 
+    // Tab Navigation State
+    private val _selectedTab = MutableStateFlow(HomeTab.HOME)
+    val selectedTab: StateFlow<HomeTab> = _selectedTab.asStateFlow()
+
+    // Songs State
     val allSongs: StateFlow<List<Song>> = getSongsUseCase().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
+    // Search State
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    val filteredSongs: StateFlow<List<Song>> = combine(allSongs, _searchQuery) { songs, query ->
-        searchSongsUseCase(songs, query)
+    private val _searchFilterTag = MutableStateFlow("All")
+    val searchFilterTag: StateFlow<String> = _searchFilterTag.asStateFlow()
+
+    val filteredSongs: StateFlow<List<Song>> = combine(allSongs, _searchQuery, _searchFilterTag) { songs, query, tag ->
+        searchSongsUseCase(songs, query, tag)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
+    // Playlists State
+    val playlists: StateFlow<List<Playlist>> = getPlaylistsUseCase().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    private val _selectedPlaylist = MutableStateFlow<Playlist?>(null)
+    val selectedPlaylist: StateFlow<Playlist?> = _selectedPlaylist.asStateFlow()
+
+    // Dialog & UI Visibility States
     private val _isAddMusicDialogOpen = MutableStateFlow(false)
     val isAddMusicDialogOpen: StateFlow<Boolean> = _isAddMusicDialogOpen.asStateFlow()
+
+    private val _isCreatePlaylistDialogOpen = MutableStateFlow(false)
+    val isCreatePlaylistDialogOpen: StateFlow<Boolean> = _isCreatePlaylistDialogOpen.asStateFlow()
+
+    private val _songForAddToPlaylist = MutableStateFlow<Song?>(null)
+    val songForAddToPlaylist: StateFlow<Song?> = _songForAddToPlaylist.asStateFlow()
 
     private val _isFullPlayerVisible = MutableStateFlow(false)
     val isFullPlayerVisible: StateFlow<Boolean> = _isFullPlayerVisible.asStateFlow()
@@ -79,8 +130,8 @@ class MusicViewModel(
     private val _isUploading = MutableStateFlow(false)
     val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
 
-    private val _uploadStatusMessage = MutableStateFlow<String?>(null)
-    val uploadStatusMessage: StateFlow<String?> = _uploadStatusMessage.asStateFlow()
+    private val _userMessage = MutableStateFlow<String?>(null)
+    val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -90,13 +141,98 @@ class MusicViewModel(
         }
     }
 
+    fun selectTab(tab: HomeTab) {
+        _selectedTab.value = tab
+    }
+
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
     }
 
+    fun onSearchFilterTagChanged(tag: String) {
+        _searchFilterTag.value = tag
+    }
+
+    fun selectPlaylist(playlist: Playlist?) {
+        _selectedPlaylist.value = playlist
+    }
+
+    fun openCreatePlaylistDialog() {
+        _isCreatePlaylistDialogOpen.value = true
+    }
+
+    fun closeCreatePlaylistDialog() {
+        _isCreatePlaylistDialogOpen.value = false
+    }
+
+    fun createPlaylist(name: String, description: String = "") {
+        viewModelScope.launch {
+            val result = createPlaylistUseCase(name, description)
+            if (result.isSuccess) {
+                _userMessage.value = "✓ Playlist '${result.getOrNull()?.name}' created!"
+            } else {
+                _userMessage.value = "⚠️ Failed to create playlist: ${result.exceptionOrNull()?.localizedMessage}"
+            }
+        }
+    }
+
+    fun deletePlaylist(playlist: Playlist) {
+        viewModelScope.launch {
+            val result = deletePlaylistUseCase(playlist.id)
+            if (result.isSuccess) {
+                if (_selectedPlaylist.value?.id == playlist.id) {
+                    _selectedPlaylist.value = null
+                }
+                _userMessage.value = "✓ Playlist '${playlist.name}' deleted"
+            }
+        }
+    }
+
+    fun openAddToPlaylistDialog(song: Song) {
+        _songForAddToPlaylist.value = song
+    }
+
+    fun closeAddToPlaylistDialog() {
+        _songForAddToPlaylist.value = null
+    }
+
+    fun addSongToPlaylist(playlist: Playlist, song: Song) {
+        viewModelScope.launch {
+            val result = addSongToPlaylistUseCase(playlist.id, song.id)
+            if (result.isSuccess) {
+                _userMessage.value = "✓ Added '${song.title}' to '${playlist.name}'"
+                // Refresh selected playlist if currently open
+                if (_selectedPlaylist.value?.id == playlist.id) {
+                    _selectedPlaylist.value = playlist.copy(songIds = playlist.songIds + song.id)
+                }
+            }
+        }
+    }
+
+    fun removeSongFromPlaylist(playlistId: String, songId: String) {
+        viewModelScope.launch {
+            val result = removeSongFromPlaylistUseCase(playlistId, songId)
+            if (result.isSuccess) {
+                _userMessage.value = "✓ Track removed from playlist"
+                _selectedPlaylist.value?.let { current ->
+                    if (current.id == playlistId) {
+                        _selectedPlaylist.value = current.copy(songIds = current.songIds.filter { it != songId })
+                    }
+                }
+            }
+        }
+    }
+
+    fun playPlaylist(songs: List<Song>, startSong: Song? = null) {
+        if (songs.isEmpty()) return
+        val targetSong = startSong ?: songs.first()
+        playerController.playSong(targetSong, songs)
+        showFullPlayer()
+    }
+
     fun openAddMusicDialog() {
         _isAddMusicDialogOpen.value = true
-        _uploadStatusMessage.value = null
+        _userMessage.value = null
     }
 
     fun closeAddMusicDialog() {
@@ -111,8 +247,9 @@ class MusicViewModel(
         _isFullPlayerVisible.value = false
     }
 
-    fun playSong(song: Song) {
-        playerController.playSong(song, filteredSongs.value)
+    fun playSong(song: Song, customQueue: List<Song>? = null) {
+        val queue = customQueue ?: filteredSongs.value
+        playerController.playSong(song, queue)
         showFullPlayer()
     }
 
@@ -181,22 +318,22 @@ class MusicViewModel(
                 )
 
                 if (result.isSuccess) {
-                    _uploadStatusMessage.value = "✓ Song '$finalTitle' uploaded and synced with friends!"
+                    _userMessage.value = "✓ Song '$finalTitle' uploaded and synced with friends!"
                 } else {
                     val error = result.exceptionOrNull()?.localizedMessage ?: "Unknown error"
-                    _uploadStatusMessage.value = "⚠️ Cloud sync error: $error"
+                    _userMessage.value = "⚠️ Cloud sync error: $error"
                 }
                 _isAddMusicDialogOpen.value = false
             } catch (e: Exception) {
-                _uploadStatusMessage.value = "⚠️ Error adding song: ${e.localizedMessage}"
+                _userMessage.value = "⚠️ Error adding song: ${e.localizedMessage}"
             } finally {
                 _isUploading.value = false
             }
         }
     }
 
-    fun clearUploadStatusMessage() {
-        _uploadStatusMessage.value = null
+    fun clearUserMessage() {
+        _userMessage.value = null
     }
 
     override fun onCleared() {

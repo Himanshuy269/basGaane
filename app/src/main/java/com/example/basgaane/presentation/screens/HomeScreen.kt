@@ -3,8 +3,6 @@ package com.example.basgaane.presentation.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.res.painterResource
-import com.example.basgaane.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,11 +19,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
@@ -37,12 +37,14 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,11 +57,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.basgaane.R
+import com.example.basgaane.domain.model.Playlist
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.presentation.components.EqualizerBars
 import com.example.basgaane.presentation.components.MiniPlayer
@@ -75,16 +80,30 @@ import com.example.basgaane.presentation.theme.SurfaceDarkVariant
 import com.example.basgaane.presentation.theme.TextPrimary
 import com.example.basgaane.presentation.theme.TextSecondary
 import com.example.basgaane.presentation.theme.TextTertiary
+import com.example.basgaane.presentation.viewmodel.HomeTab
 
 @Composable
 fun HomeScreen(
+    selectedTab: HomeTab,
+    onTabSelected: (HomeTab) -> Unit,
     songs: List<Song>,
+    filteredSongs: List<Song>,
+    searchQuery: String,
+    searchFilterTag: String,
+    onSearchQueryChanged: (String) -> Unit,
+    onSearchFilterTagChanged: (String) -> Unit,
+    playlists: List<Playlist>,
+    selectedPlaylist: Playlist?,
+    onSelectPlaylist: (Playlist?) -> Unit,
+    onCreatePlaylistClick: () -> Unit,
+    onDeletePlaylist: (Playlist) -> Unit,
+    onAddToPlaylistClick: (Song) -> Unit,
+    onRemoveSongFromPlaylist: (playlistId: String, songId: String) -> Unit,
+    onPlayPlaylist: (List<Song>, Song?) -> Unit,
     currentSong: Song?,
     isPlaying: Boolean,
     progressMs: Long,
     durationMs: Long,
-    searchQuery: String,
-    onSearchQueryChanged: (String) -> Unit,
     onSongClick: (Song) -> Unit,
     onPlayPause: () -> Unit,
     onSkipNext: () -> Unit,
@@ -108,15 +127,17 @@ fun HomeScreen(
             }
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAddMusicClick,
-                containerColor = NeonPurple,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp),
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add Music") },
-                text = { Text("Add Music", fontWeight = FontWeight.Bold) },
-                modifier = Modifier.padding(bottom = if (currentSong != null) 72.dp else 16.dp)
-            )
+            if (selectedPlaylist == null && selectedTab == HomeTab.HOME) {
+                ExtendedFloatingActionButton(
+                    onClick = onAddMusicClick,
+                    containerColor = NeonPurple,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(16.dp),
+                    icon = { Icon(Icons.Default.Add, contentDescription = "Add Music") },
+                    text = { Text("Add Music", fontWeight = FontWeight.Bold) },
+                    modifier = Modifier.padding(bottom = if (currentSong != null) 72.dp else 16.dp)
+                )
+            }
         },
         bottomBar = {
             MiniPlayer(
@@ -131,152 +152,259 @@ fun HomeScreen(
         },
         modifier = modifier
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Branding Top Bar
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(id = R.drawable.app_logo),
-                        contentDescription = "BasGaane Logo",
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column {
-                        Text(
-                            text = "BasGaane",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = (-0.5).sp
-                            ),
-                            color = TextPrimary
-                        )
-                        Text(
-                            text = "Play & Share Your Music",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = NeonCyan
-                        )
-                    }
-                }
-
-                // Track Count Chip
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(SurfaceDarkVariant)
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "${songs.size} tracks",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = TextSecondary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = onSearchQueryChanged,
-                placeholder = { Text("Search songs or artists...", color = TextTertiary) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = NeonPurple
-                    )
+        // If a playlist is selected, show the full detail screen
+        if (selectedPlaylist != null) {
+            PlaylistDetailScreen(
+                playlist = selectedPlaylist,
+                allSongs = songs,
+                currentSong = currentSong,
+                isPlaying = isPlaying,
+                onBack = { onSelectPlaylist(null) },
+                onPlayAll = { plSongs -> onPlayPlaylist(plSongs, null) },
+                onShufflePlay = { plSongs -> onPlayPlaylist(plSongs.shuffled(), null) },
+                onSongClick = { targetSong, plSongs -> onPlayPlaylist(plSongs, targetSong) },
+                onRemoveSongFromPlaylist = { sId -> onRemoveSongFromPlaylist(selectedPlaylist.id, sId) },
+                onDeletePlaylist = {
+                    onDeletePlaylist(selectedPlaylist)
+                    onSelectPlaylist(null)
                 },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { onSearchQueryChanged("") }) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear",
-                                tint = TextSecondary
+                modifier = Modifier.padding(innerPadding)
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Top Branding Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.app_logo),
+                            contentDescription = "BasGaane Logo",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        Column {
+                            Text(
+                                text = "BasGaane",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = (-0.5).sp
+                                ),
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "Play & Share Your Music",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = NeonCyan
                             )
                         }
                     }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(14.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedContainerColor = SurfaceDark,
-                    unfocusedContainerColor = SurfaceDark,
-                    focusedBorderColor = NeonCyan,
-                    unfocusedBorderColor = SurfaceDarkVariant
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Songs List
-            if (songs.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.MusicNote,
-                            contentDescription = null,
-                            tint = TextTertiary,
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
+                    // Track count chip
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(SurfaceDarkVariant)
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
                         Text(
-                            text = if (searchQuery.isEmpty()) "No songs found" else "No matching tracks",
-                            style = MaterialTheme.typography.titleMedium,
+                            text = "${songs.size} tracks",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                             color = TextSecondary
                         )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "Tap '+ Add Music' below to add audio files",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextTertiary
-                        )
                     }
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
-                        val isCurrentPlaying = song.id == currentSong?.id
 
-                        SongItemCard(
-                            index = index + 1,
-                            song = song,
-                            isSelected = isCurrentPlaying,
-                            isPlaying = isCurrentPlaying && isPlaying,
-                            onClick = { onSongClick(song) },
-                            onDelete = { onDeleteSong(song) }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Spotify-Style Navigation Tabs: Home (All Tracks), Search, Playlists
+                TabRow(
+                    selectedTabIndex = selectedTab.ordinal,
+                    containerColor = BackgroundDark,
+                    contentColor = NeonCyan,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTab.ordinal]),
+                            color = NeonPurple
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Tab(
+                        selected = selectedTab == HomeTab.HOME,
+                        onClick = { onTabSelected(HomeTab.HOME) },
+                        text = {
+                            Text(
+                                text = "All Tracks",
+                                fontWeight = if (selectedTab == HomeTab.HOME) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTab == HomeTab.HOME) NeonCyan else TextSecondary
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Headphones,
+                                contentDescription = null,
+                                tint = if (selectedTab == HomeTab.HOME) NeonCyan else TextTertiary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    )
+
+                    Tab(
+                        selected = selectedTab == HomeTab.SEARCH,
+                        onClick = { onTabSelected(HomeTab.SEARCH) },
+                        text = {
+                            Text(
+                                text = "Search",
+                                fontWeight = if (selectedTab == HomeTab.SEARCH) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTab == HomeTab.SEARCH) NeonCyan else TextSecondary
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                tint = if (selectedTab == HomeTab.SEARCH) NeonCyan else TextTertiary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    )
+
+                    Tab(
+                        selected = selectedTab == HomeTab.PLAYLISTS,
+                        onClick = { onTabSelected(HomeTab.PLAYLISTS) },
+                        text = {
+                            Text(
+                                text = "Playlists",
+                                fontWeight = if (selectedTab == HomeTab.PLAYLISTS) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTab == HomeTab.PLAYLISTS) NeonCyan else TextSecondary
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+                                contentDescription = null,
+                                tint = if (selectedTab == HomeTab.PLAYLISTS) NeonCyan else TextTertiary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    )
+                }
+
+                // Body Section based on active tab
+                when (selectedTab) {
+                    HomeTab.HOME -> {
+                        AllTracksContent(
+                            songs = songs,
+                            currentSong = currentSong,
+                            isPlaying = isPlaying,
+                            onSongClick = onSongClick,
+                            onAddToPlaylist = onAddToPlaylistClick,
+                            onDeleteSong = onDeleteSong
+                        )
+                    }
+
+                    HomeTab.SEARCH -> {
+                        SearchScreen(
+                            searchQuery = searchQuery,
+                            selectedFilterTag = searchFilterTag,
+                            onSearchQueryChanged = onSearchQueryChanged,
+                            onFilterTagSelected = onSearchFilterTagChanged,
+                            filteredSongs = filteredSongs,
+                            currentSong = currentSong,
+                            isPlaying = isPlaying,
+                            onSongClick = onSongClick,
+                            onAddToPlaylistClick = onAddToPlaylistClick,
+                            onDeleteSong = onDeleteSong
+                        )
+                    }
+
+                    HomeTab.PLAYLISTS -> {
+                        PlaylistsScreen(
+                            playlists = playlists,
+                            onPlaylistClick = onSelectPlaylist,
+                            onCreatePlaylistClick = onCreatePlaylistClick,
+                            onDeletePlaylist = onDeletePlaylist
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AllTracksContent(
+    songs: List<Song>,
+    currentSong: Song?,
+    isPlaying: Boolean,
+    onSongClick: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    onDeleteSong: (Song) -> Unit
+) {
+    if (songs.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    imageVector = Icons.Default.MusicNote,
+                    contentDescription = null,
+                    tint = TextTertiary,
+                    modifier = Modifier.size(64.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "No songs added yet",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = TextSecondary
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Tap '+ Add Music' below to upload audio files",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextTertiary
+                )
+            }
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(top = 14.dp, bottom = 90.dp)
+        ) {
+            itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
+                val isCurrentPlaying = song.id == currentSong?.id
+
+                SongItemCard(
+                    index = index + 1,
+                    song = song,
+                    isSelected = isCurrentPlaying,
+                    isPlaying = isCurrentPlaying && isPlaying,
+                    onClick = { onSongClick(song) },
+                    onAddToPlaylist = { onAddToPlaylist(song) },
+                    onDelete = { onDeleteSong(song) }
+                )
             }
         }
     }
@@ -289,6 +417,7 @@ fun SongItemCard(
     isSelected: Boolean,
     isPlaying: Boolean,
     onClick: () -> Unit,
+    onAddToPlaylist: () -> Unit,
     onDelete: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -412,10 +541,10 @@ fun SongItemCard(
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Options",
                         tint = TextTertiary,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
@@ -423,6 +552,21 @@ fun SongItemCard(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false }
                 ) {
+                    DropdownMenuItem(
+                        text = { Text("Add to Playlist", color = TextPrimary) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.PlaylistAdd,
+                                contentDescription = null,
+                                tint = NeonCyan
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            onAddToPlaylist()
+                        }
+                    )
+
                     DropdownMenuItem(
                         text = { Text("Delete Track", color = NeonPink) },
                         leadingIcon = {
