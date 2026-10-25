@@ -135,7 +135,7 @@ class MusicRepositoryImpl(
             combineAndEmit()
 
             // Return failure so the user knows it could not be synced to friends
-            Result.failure(Exception("Saved locally, but cloud sync to friends failed: ${err?.localizedMessage ?: "Check Firebase Storage rules and internet"}"))
+            Result.failure(Exception("Saved on this phone, but cloud sync failed: ${err?.localizedMessage ?: "Check Firebase Storage rules"}"))
         }
     }
 

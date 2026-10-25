@@ -6,10 +6,13 @@ import android.util.Log
 import com.example.basgaane.domain.model.Song
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.StorageMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -43,9 +46,13 @@ class FirebaseSongDataSource(
             }
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.w(TAG, "Anonymous auth notice (proceeding): ${e.localizedMessage}")
-            // Proceed anyway, in case Firestore/Storage has open rules
-            Result.success(Unit)
+            val msg = if (e is FirebaseAuthException || e.message?.contains("CONFIGURATION_NOT_FOUND", ignoreCase = true) == true) {
+                "Anonymous Authentication is disabled! Please enable it in Firebase Console > Authentication > Sign-in method."
+            } else {
+                e.localizedMessage ?: "Auth error"
+            }
+            Log.w(TAG, "Anonymous auth notice: $msg")
+            Result.failure(Exception(msg, e))
         }
     }
 
@@ -116,10 +123,6 @@ class FirebaseSongDataSource(
             val fileName = "track_${songId}.mp3"
             val fileRef = storageRef.child("audio").child(fileName)
 
-            Log.d(TAG, "Opening audio stream for upload: $audioUri")
-            stream = context.contentResolver.openInputStream(audioUri)
-                ?: throw IllegalArgumentException("Could not open audio file stream.")
-
             val mimeType = context.contentResolver.getType(audioUri) ?: "audio/mpeg"
             val metadata = StorageMetadata.Builder()
                 .setContentType(mimeType)
@@ -127,16 +130,43 @@ class FirebaseSongDataSource(
                 .build()
 
             Log.d(TAG, "Uploading audio to Firebase Storage: audio/$fileName (mime: $mimeType)...")
-            Tasks.await(fileRef.putStream(stream, metadata))
 
-            Log.d(TAG, "Upload complete. Fetching download URL...")
-            val downloadUrl = Tasks.await(fileRef.downloadUrl).toString()
+            // Try uploading via putFile first (with content resolver fallback to putStream)
+            val uploadTask = try {
+                fileRef.putFile(audioUri, metadata)
+            } catch (e: Exception) {
+                Log.w(TAG, "putFile failed, falling back to putStream: ${e.message}")
+                stream = context.contentResolver.openInputStream(audioUri)
+                    ?: throw IllegalArgumentException("Could not open audio file stream.")
+                fileRef.putStream(stream, metadata)
+            }
+
+            // Chain to downloadUrl reliably via continueWithTask to eliminate race conditions
+            val urlTask = uploadTask.continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    throw task.exception ?: Exception("Audio upload task failed.")
+                }
+                fileRef.downloadUrl
+            }
+
+            val downloadUrl = Tasks.await(urlTask).toString()
             Log.d(TAG, "Audio download URL obtained: $downloadUrl")
 
             Result.success(downloadUrl)
         } catch (e: Exception) {
             Log.e(TAG, "Firebase Storage upload error: ${e.message}", e)
-            Result.failure(e)
+            val friendlyMsg = when {
+                e is StorageException && (e.errorCode == StorageException.ERROR_OBJECT_NOT_FOUND || e.message?.contains("Object does not exist", ignoreCase = true) == true) ->
+                    "Firebase Storage bucket not found! In Firebase Console, go to Build > Storage and click 'Get Started' to activate Cloud Storage."
+                e is StorageException && e.errorCode == StorageException.ERROR_NOT_AUTHENTICATED ->
+                    "Not authenticated! In Firebase Console, go to Build > Authentication > Sign-in method and enable 'Anonymous'."
+                e is StorageException && e.errorCode == StorageException.ERROR_NOT_AUTHORIZED ->
+                    "Permission denied! In Firebase Console > Storage > Rules, allow read and write for authenticated users."
+                e.message?.contains("Object does not exist", ignoreCase = true) == true ->
+                    "Firebase Storage bucket not found! In Firebase Console, go to Build > Storage and click 'Get Started' to activate Cloud Storage."
+                else -> e.localizedMessage ?: "Unknown storage upload error"
+            }
+            Result.failure(Exception(friendlyMsg, e))
         } finally {
             try {
                 stream?.close()
@@ -167,7 +197,14 @@ class FirebaseSongDataSource(
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Firestore write error: ${e.message}", e)
-            Result.failure(e)
+            val friendlyMsg = when {
+                e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED ->
+                    "Firestore permission denied! In Firebase Console > Firestore Database > Rules, allow read and write for authenticated users."
+                e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.NOT_FOUND ->
+                    "Firestore database not found! In Firebase Console, go to Build > Firestore Database and click 'Create database'."
+                else -> e.localizedMessage ?: "Unknown Firestore error"
+            }
+            Result.failure(Exception(friendlyMsg, e))
         }
     }
 
