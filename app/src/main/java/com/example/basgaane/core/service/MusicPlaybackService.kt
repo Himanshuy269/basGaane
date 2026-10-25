@@ -1,4 +1,4 @@
-package com.example.basgaane.service
+package com.example.basgaane.core.service
 
 import android.app.PendingIntent
 import android.content.Intent

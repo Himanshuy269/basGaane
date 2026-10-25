@@ -28,29 +28,40 @@ A sleek, cool, and modern Android music player built with **Kotlin** and **Jetpa
 
 ## 🏗️ Architecture Overview
 
-BasGaane follows modern Android Architecture Components (MVVM) and Unidirectional Data Flow (UDF):
+BasGaane follows **Clean Architecture** with strict layer decoupling and Unidirectional Data Flow (UDF):
 
 ```
-                   ┌──────────────────────────────────────────┐
-                   │               Jetpack Compose UI         │
-                   │ (HomeScreen, MiniPlayer, FullPlayerSheet)│
-                   └────────────────────┬─────────────────────┘
-                                        │ Events & StateFlow
-                                        ▼
-                   ┌──────────────────────────────────────────┐
-                   │             MusicViewModel               │
-                   └──────────┬────────────────────┬──────────┘
-                              │                    │
-              Tracks State    ▼                    ▼ Playback Commands
-     ┌───────────────────────────────┐   ┌──────────────────────────────┐
-     │       MusicRepository         │   │    MusicPlayerController     │
-     │  (Local Store + Cloud Sync)   │   └──────────────┬───────────────┘
-     └───────────────────────────────┘                  │ MediaController
-                                                        ▼
-                                         ┌──────────────────────────────┐
-                                         │    MusicPlaybackService      │
-                                         │   (AndroidX Media3 + Exo)    │
-                                         └──────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                 PRESENTATION LAYER (UI)                     │
+│  • HomeScreen         • MiniPlayer       • FullPlayerSheet  │
+│  • AddMusicDialog     • EqualizerBars    • MusicViewModel   │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ Observes & Invokes
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     DOMAIN LAYER                            │
+│  • Model: Song                                              │
+│  • Use Cases:                                               │
+│    - GetSongsUseCase           - AddSongUseCase             │
+│    - DeleteSongUseCase         - SearchSongsUseCase         │
+│  • Repository Interface: MusicRepository                    │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ Implemented by
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      DATA LAYER                             │
+│  • Repository Implementation: MusicRepositoryImpl           │
+│  • Local Data Source: LocalSongDataSource (Storage + Demos) │
+│  • Remote Data Source: FirebaseSongDataSource (Cloud Sync)  │
+└─────────────────────────────────────────────────────────────┘
+                               ▲
+                               │ Uses
+┌──────────────────────────────┴──────────────────────────────┐
+│                      CORE LAYER                             │
+│  • Audio Engine: AndroidX Media3 (ExoPlayer)                │
+│  • Background Service: MusicPlaybackService                 │
+│  • Controller: MusicPlayerController                        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 For complete architectural details, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -67,7 +78,7 @@ For complete architectural details, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 ### Building the Project
 From the project root:
 ```bash
-./gradlew assembleDebug
+./gradlew assembleDebug --no-configuration-cache
 ```
 
 To install on a connected device/emulator:
@@ -86,35 +97,51 @@ To enable friends to upload and automatically share music across devices:
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Structure (Clean Architecture)
 
 ```
 BasGaane/
 ├── app/
 │   ├── src/main/
 │   │   ├── java/com/example/basgaane/
-│   │   │   ├── data/
-│   │   │   │   └── MusicRepository.kt       # Persistent storage & cloud sync abstraction
-│   │   │   ├── model/
-│   │   │   │   └── Song.kt                  # Audio track data model
-│   │   │   ├── player/
-│   │   │   │   └── MusicPlayerController.kt # Media3 MediaController wrapper
-│   │   │   ├── service/
-│   │   │   │   └── MusicPlaybackService.kt  # AndroidX MediaSessionService
-│   │   │   ├── ui/
+│   │   │   ├── domain/                          # Business logic & contracts
+│   │   │   │   ├── model/
+│   │   │   │   │   └── Song.kt                  # Domain track entity
+│   │   │   │   ├── repository/
+│   │   │   │   │   └── MusicRepository.kt       # Repository contract
+│   │   │   │   └── usecase/
+│   │   │   │       ├── GetSongsUseCase.kt       # Stream all songs
+│   │   │   │       ├── AddSongUseCase.kt        # Upload & add song
+│   │   │   │       ├── DeleteSongUseCase.kt     # Remove song
+│   │   │   │       └── SearchSongsUseCase.kt    # Filter tracks
+│   │   │   ├── data/                            # Data implementations
+│   │   │   │   ├── datasource/
+│   │   │   │   │   ├── local/
+│   │   │   │   │   │   └── LocalSongDataSource.kt
+│   │   │   │   │   └── remote/
+│   │   │   │   │       └── FirebaseSongDataSource.kt
+│   │   │   │   └── repository/
+│   │   │   │       └── MusicRepositoryImpl.kt   # Unified repository
+│   │   │   ├── core/                            # Media3 system engine
+│   │   │   │   ├── player/
+│   │   │   │   │   └── MusicPlayerController.kt # Player controller
+│   │   │   │   └── service/
+│   │   │   │       └── MusicPlaybackService.kt  # MediaSessionService
+│   │   │   ├── presentation/                    # Jetpack Compose UI
 │   │   │   │   ├── components/
-│   │   │   │   │   ├── AddMusicDialog.kt    # "Add Music" file picker & form
-│   │   │   │   │   ├── EqualizerBars.kt     # Animated visualizer bars
-│   │   │   │   │   ├── FullPlayerSheet.kt   # Full-screen vinyl player
-│   │   │   │   │   └── MiniPlayer.kt        # Persistent bottom player bar
+│   │   │   │   │   ├── AddMusicDialog.kt        # File picker dialog
+│   │   │   │   │   ├── EqualizerBars.kt         # Animated visualizer
+│   │   │   │   │   ├── FullPlayerSheet.kt       # Vinyl player modal
+│   │   │   │   │   └── MiniPlayer.kt            # Bottom bar
 │   │   │   │   ├── screens/
-│   │   │   │   │   └── HomeScreen.kt        # Main music catalog & search
-│   │   │   │   ├── theme/                   # Neon/Dark cyber music theme
-│   │   │   │   └── MusicViewModel.kt        # MVVM StateFlow coordinator
-│   │   │   └── MainActivity.kt              # App entry point & permission flow
-│   │   └── AndroidManifest.xml              # Foreground service & permissions
+│   │   │   │   │   └── HomeScreen.kt            # Catalog screen
+│   │   │   │   ├── theme/                       # Cyber/Neon dark styling
+│   │   │   │   └── viewmodel/
+│   │   │   │       └── MusicViewModel.kt        # UI State coordinator
+│   │   │   └── MainActivity.kt                  # Entry point & permissions
+│   │   └── AndroidManifest.xml                  # Foreground service config
 ├── docs/
-│   ├── ARCHITECTURE.md                      # Audio engine & reactive state docs
-│   └── FIREBASE_SETUP.md                    # Cloud sync guide for friends
-└── README.md                                # Project documentation
+│   ├── ARCHITECTURE.md                          # Clean Architecture deep dive
+│   └── FIREBASE_SETUP.md                        # Cloud sync guide for friends
+└── README.md                                    # Project documentation
 ```

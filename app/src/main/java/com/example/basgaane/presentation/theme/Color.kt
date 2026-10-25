@@ -1,4 +1,4 @@
-package com.example.basgaane.ui.theme
+package com.example.basgaane.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

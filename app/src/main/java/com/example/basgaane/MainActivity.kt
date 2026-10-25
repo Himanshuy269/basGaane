@@ -18,12 +18,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.basgaane.ui.MusicViewModel
-import com.example.basgaane.ui.components.AddMusicDialog
-import com.example.basgaane.ui.components.FullPlayerSheet
-import com.example.basgaane.ui.screens.HomeScreen
-import com.example.basgaane.ui.theme.BackgroundDark
-import com.example.basgaane.ui.theme.BasGaaneTheme
+import com.example.basgaane.presentation.components.AddMusicDialog
+import com.example.basgaane.presentation.components.FullPlayerSheet
+import com.example.basgaane.presentation.screens.HomeScreen
+import com.example.basgaane.presentation.theme.BackgroundDark
+import com.example.basgaane.presentation.theme.BasGaaneTheme
+import com.example.basgaane.presentation.viewmodel.MusicViewModel
 
 class MainActivity : ComponentActivity() {
 

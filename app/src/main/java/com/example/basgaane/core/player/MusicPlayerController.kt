@@ -1,4 +1,4 @@
-package com.example.basgaane.player
+package com.example.basgaane.core.player
 
 import android.content.ComponentName
 import android.content.Context
@@ -9,8 +9,8 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.example.basgaane.model.Song
-import com.example.basgaane.service.MusicPlaybackService
+import com.example.basgaane.core.service.MusicPlaybackService
+import com.example.basgaane.domain.model.Song
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

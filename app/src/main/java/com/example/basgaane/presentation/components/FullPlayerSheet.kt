@@ -1,4 +1,4 @@
-package com.example.basgaane.ui.components
+package com.example.basgaane.presentation.components
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -63,18 +63,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
-import com.example.basgaane.model.Song
-import com.example.basgaane.ui.theme.AccentGradientEnd
-import com.example.basgaane.ui.theme.AccentGradientStart
-import com.example.basgaane.ui.theme.BackgroundDark
-import com.example.basgaane.ui.theme.NeonCyan
-import com.example.basgaane.ui.theme.NeonPink
-import com.example.basgaane.ui.theme.NeonPurple
-import com.example.basgaane.ui.theme.PlayerTrack
-import com.example.basgaane.ui.theme.SurfaceDark
-import com.example.basgaane.ui.theme.TextPrimary
-import com.example.basgaane.ui.theme.TextSecondary
-import com.example.basgaane.ui.theme.TextTertiary
+import com.example.basgaane.domain.model.Song
+import com.example.basgaane.presentation.theme.AccentGradientEnd
+import com.example.basgaane.presentation.theme.AccentGradientStart
+import com.example.basgaane.presentation.theme.BackgroundDark
+import com.example.basgaane.presentation.theme.NeonCyan
+import com.example.basgaane.presentation.theme.NeonPink
+import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.PlayerTrack
+import com.example.basgaane.presentation.theme.SurfaceDark
+import com.example.basgaane.presentation.theme.TextPrimary
+import com.example.basgaane.presentation.theme.TextSecondary
+import com.example.basgaane.presentation.theme.TextTertiary
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,7 +98,6 @@ fun FullPlayerSheet(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Local seeking state so slider moves smoothly while dragging
     var isDraggingSlider by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableFloatStateOf(0f) }
 
@@ -108,7 +107,6 @@ fun FullPlayerSheet(
         progressMs
     }
 
-    // Vinyl rotation animation
     val infiniteTransition = rememberInfiniteTransition(label = "VinylRotation")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -156,7 +154,6 @@ fun FullPlayerSheet(
                     color = NeonCyan
                 )
 
-                // Placeholder to balance header
                 Spacer(modifier = Modifier.size(32.dp))
             }
 
@@ -178,7 +175,6 @@ fun FullPlayerSheet(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                // Outer Vinyl grooves background
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -218,7 +214,6 @@ fun FullPlayerSheet(
                         }
                     }
 
-                    // Vinyl Center Hole
                     Box(
                         modifier = Modifier
                             .size(30.dp)
@@ -231,7 +226,6 @@ fun FullPlayerSheet(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Track Title & Artist
             Text(
                 text = song.title,
                 style = MaterialTheme.typography.headlineSmall.copy(
@@ -257,7 +251,6 @@ fun FullPlayerSheet(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Storage Source Badge (Cloud / Local)
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -283,7 +276,6 @@ fun FullPlayerSheet(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Progress Slider
             val maxDuration = durationMs.coerceAtLeast(1L).toFloat()
             Slider(
                 value = currentPosition.toFloat().coerceIn(0f, maxDuration),
@@ -304,7 +296,6 @@ fun FullPlayerSheet(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Timestamps
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -323,13 +314,11 @@ fun FullPlayerSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Playback Controls Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Shuffle Button
                 IconButton(onClick = onToggleShuffle) {
                     Icon(
                         imageVector = Icons.Default.Shuffle,
@@ -339,7 +328,6 @@ fun FullPlayerSheet(
                     )
                 }
 
-                // Previous Button
                 IconButton(
                     onClick = onSkipPrevious,
                     modifier = Modifier.size(48.dp)
@@ -352,7 +340,6 @@ fun FullPlayerSheet(
                     )
                 }
 
-                // Play / Pause Main Center Button
                 Box(
                     modifier = Modifier
                         .size(68.dp)
@@ -378,7 +365,6 @@ fun FullPlayerSheet(
                     }
                 }
 
-                // Next Button
                 IconButton(
                     onClick = onSkipNext,
                     modifier = Modifier.size(48.dp)
@@ -391,7 +377,6 @@ fun FullPlayerSheet(
                     )
                 }
 
-                // Repeat Button
                 IconButton(onClick = onToggleRepeat) {
                     val repeatIcon = if (repeatMode == Player.REPEAT_MODE_ONE) {
                         Icons.Default.RepeatOne
@@ -414,9 +399,6 @@ fun FullPlayerSheet(
     }
 }
 
-/**
- * Format milliseconds into MM:SS string.
- */
 fun formatMs(ms: Long): String {
     val totalSeconds = (ms / 1000).coerceAtLeast(0)
     val minutes = totalSeconds / 60

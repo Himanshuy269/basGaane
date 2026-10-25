@@ -1,15 +1,18 @@
-package com.example.basgaane.ui
+package com.example.basgaane.presentation.viewmodel
 
 import android.app.Application
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.basgaane.data.DefaultMusicRepository
-import com.example.basgaane.data.MusicRepository
-import com.example.basgaane.model.Song
-import com.example.basgaane.player.MusicPlayerController
-import com.example.basgaane.player.PlayerUiState
+import com.example.basgaane.core.player.MusicPlayerController
+import com.example.basgaane.core.player.PlayerUiState
+import com.example.basgaane.data.repository.MusicRepositoryImpl
+import com.example.basgaane.domain.model.Song
+import com.example.basgaane.domain.usecase.AddSongUseCase
+import com.example.basgaane.domain.usecase.DeleteSongUseCase
+import com.example.basgaane.domain.usecase.GetSongsUseCase
+import com.example.basgaane.domain.usecase.SearchSongsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,14 +21,39 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class MusicViewModel(application: Application) : AndroidViewModel(application) {
+/**
+ * Presentation ViewModel coordinating domain Use Cases and exposing UI state.
+ */
+class MusicViewModel(
+    application: Application,
+    private val getSongsUseCase: GetSongsUseCase,
+    private val addSongUseCase: AddSongUseCase,
+    private val deleteSongUseCase: DeleteSongUseCase,
+    private val searchSongsUseCase: SearchSongsUseCase,
+    private val playerController: MusicPlayerController
+) : AndroidViewModel(application) {
 
-    private val repository: MusicRepository = DefaultMusicRepository(application)
-    private val playerController: MusicPlayerController = MusicPlayerController(application)
+    // Default factory constructor for ViewModelProvider
+    constructor(application: Application) : this(
+        application = application,
+        repository = MusicRepositoryImpl(application)
+    )
+
+    private constructor(
+        application: Application,
+        repository: MusicRepositoryImpl
+    ) : this(
+        application = application,
+        getSongsUseCase = GetSongsUseCase(repository),
+        addSongUseCase = AddSongUseCase(repository),
+        deleteSongUseCase = DeleteSongUseCase(repository),
+        searchSongsUseCase = SearchSongsUseCase(),
+        playerController = MusicPlayerController(application)
+    )
 
     val playerUiState: StateFlow<PlayerUiState> = playerController.uiState
 
-    val allSongs: StateFlow<List<Song>> = repository.getSongs().stateIn(
+    val allSongs: StateFlow<List<Song>> = getSongsUseCase().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -35,14 +63,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     val filteredSongs: StateFlow<List<Song>> = combine(allSongs, _searchQuery) { songs, query ->
-        if (query.isBlank()) {
-            songs
-        } else {
-            songs.filter {
-                it.title.contains(query, ignoreCase = true) ||
-                        it.artist.contains(query, ignoreCase = true)
-            }
-        }
+        searchSongsUseCase(songs, query)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -120,13 +141,12 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteSong(song: Song) {
         viewModelScope.launch {
-            repository.removeSong(song.id)
+            deleteSongUseCase(song.id)
         }
     }
 
     /**
-     * Extracts duration and metadata from picked audio URI, uploads to Firebase Cloud Storage,
-     * writes metadata to Firestore for friends, or saves locally if offline.
+     * Extracts duration and delegates to domain AddSongUseCase for upload / storage.
      */
     fun addTrack(
         title: String,
@@ -145,13 +165,13 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     durationMs = time?.toLongOrNull() ?: 0L
                     retriever.release()
                 } catch (e: Exception) {
-                    // Fallback to 0 if retriever fails
+                    // Fallback if retriever cannot parse
                 }
 
                 val finalTitle = title.trim().ifEmpty { "New Track" }
                 val finalArtist = artist.trim().ifEmpty { "My Music" }
 
-                val result = repository.uploadSongToCloud(
+                val result = addSongUseCase(
                     title = finalTitle,
                     artist = finalArtist,
                     audioUri = audioUri,

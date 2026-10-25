@@ -1,4 +1,4 @@
-package com.example.basgaane.ui.screens
+package com.example.basgaane.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,7 +25,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,21 +54,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.basgaane.model.Song
-import com.example.basgaane.ui.components.EqualizerBars
-import com.example.basgaane.ui.components.MiniPlayer
-import com.example.basgaane.ui.components.formatMs
-import com.example.basgaane.ui.theme.AccentGradientEnd
-import com.example.basgaane.ui.theme.AccentGradientStart
-import com.example.basgaane.ui.theme.BackgroundDark
-import com.example.basgaane.ui.theme.NeonCyan
-import com.example.basgaane.ui.theme.NeonPink
-import com.example.basgaane.ui.theme.NeonPurple
-import com.example.basgaane.ui.theme.SurfaceDark
-import com.example.basgaane.ui.theme.SurfaceDarkVariant
-import com.example.basgaane.ui.theme.TextPrimary
-import com.example.basgaane.ui.theme.TextSecondary
-import com.example.basgaane.ui.theme.TextTertiary
+import com.example.basgaane.domain.model.Song
+import com.example.basgaane.presentation.components.EqualizerBars
+import com.example.basgaane.presentation.components.MiniPlayer
+import com.example.basgaane.presentation.components.formatMs
+import com.example.basgaane.presentation.theme.AccentGradientEnd
+import com.example.basgaane.presentation.theme.AccentGradientStart
+import com.example.basgaane.presentation.theme.BackgroundDark
+import com.example.basgaane.presentation.theme.NeonCyan
+import com.example.basgaane.presentation.theme.NeonPink
+import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.SurfaceDark
+import com.example.basgaane.presentation.theme.SurfaceDarkVariant
+import com.example.basgaane.presentation.theme.TextPrimary
+import com.example.basgaane.presentation.theme.TextSecondary
+import com.example.basgaane.presentation.theme.TextTertiary
 
 @Composable
 fun HomeScreen(
@@ -302,7 +300,6 @@ fun SongItemCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Artwork or Index Thumbnail
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -342,7 +339,6 @@ fun SongItemCard(
 
             Spacer(modifier = Modifier.width(14.dp))
 
-            // Title & Artist
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = song.title,
@@ -379,7 +375,6 @@ fun SongItemCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Duration
             if (song.durationMs > 0) {
                 Text(
                     text = formatMs(song.durationMs),
@@ -389,7 +384,6 @@ fun SongItemCard(
                 Spacer(modifier = Modifier.width(6.dp))
             }
 
-            // Options Menu (Delete)
             Box {
                 IconButton(
                     onClick = { showMenu = true },

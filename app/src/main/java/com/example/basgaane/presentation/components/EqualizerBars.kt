@@ -1,4 +1,4 @@
-package com.example.basgaane.ui.components
+package com.example.basgaane.presentation.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -21,7 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.basgaane.ui.theme.NeonCyan
+import com.example.basgaane.presentation.theme.NeonCyan
 
 /**
  * Animated equalizer visualizer bars for currently playing songs.

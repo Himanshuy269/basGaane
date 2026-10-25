@@ -1,4 +1,4 @@
-package com.example.basgaane.ui.components
+package com.example.basgaane.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -39,14 +39,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.basgaane.model.Song
-import com.example.basgaane.ui.theme.AccentGradientEnd
-import com.example.basgaane.ui.theme.AccentGradientStart
-import com.example.basgaane.ui.theme.NeonCyan
-import com.example.basgaane.ui.theme.NeonPurple
-import com.example.basgaane.ui.theme.SurfaceDarkVariant
-import com.example.basgaane.ui.theme.TextPrimary
-import com.example.basgaane.ui.theme.TextSecondary
+import com.example.basgaane.domain.model.Song
+import com.example.basgaane.presentation.theme.AccentGradientEnd
+import com.example.basgaane.presentation.theme.AccentGradientStart
+import com.example.basgaane.presentation.theme.NeonCyan
+import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.SurfaceDarkVariant
+import com.example.basgaane.presentation.theme.TextPrimary
+import com.example.basgaane.presentation.theme.TextSecondary
 
 @Composable
 fun MiniPlayer(

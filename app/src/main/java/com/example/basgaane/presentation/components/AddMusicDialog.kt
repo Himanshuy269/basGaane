@@ -1,4 +1,4 @@
-package com.example.basgaane.ui.components
+package com.example.basgaane.presentation.components
 
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -50,14 +50,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.basgaane.ui.theme.AccentGradientEnd
-import com.example.basgaane.ui.theme.AccentGradientStart
-import com.example.basgaane.ui.theme.NeonCyan
-import com.example.basgaane.ui.theme.NeonPurple
-import com.example.basgaane.ui.theme.SurfaceDark
-import com.example.basgaane.ui.theme.SurfaceDarkVariant
-import com.example.basgaane.ui.theme.TextPrimary
-import com.example.basgaane.ui.theme.TextSecondary
+import com.example.basgaane.presentation.theme.AccentGradientEnd
+import com.example.basgaane.presentation.theme.AccentGradientStart
+import com.example.basgaane.presentation.theme.NeonCyan
+import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.SurfaceDark
+import com.example.basgaane.presentation.theme.SurfaceDarkVariant
+import com.example.basgaane.presentation.theme.TextPrimary
+import com.example.basgaane.presentation.theme.TextSecondary
 
 @Composable
 fun AddMusicDialog(
@@ -81,7 +81,6 @@ fun AddMusicDialog(
         if (uri != null) {
             selectedUri = uri
             validationError = null
-            // Query actual file name from Android ContentResolver
             try {
                 context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                     val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
@@ -89,7 +88,6 @@ fun AddMusicDialog(
                         val name = cursor.getString(nameIndex)
                         fileName = name
                         if (title.isBlank()) {
-                            // Automatically pre-fill title without extension
                             title = name.substringBeforeLast(".")
                         }
                     }
@@ -114,7 +112,6 @@ fun AddMusicDialog(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                // Header
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
@@ -155,7 +152,6 @@ fun AddMusicDialog(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // File Picker Box
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -216,7 +212,6 @@ fun AddMusicDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Song Title Input
                 OutlinedTextField(
                     value = title,
                     onValueChange = {
@@ -241,7 +236,6 @@ fun AddMusicDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Artist Name Input
                 OutlinedTextField(
                     value = artist,
                     onValueChange = { artist = it },
@@ -273,7 +267,6 @@ fun AddMusicDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Actions: Cancel & Add
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
