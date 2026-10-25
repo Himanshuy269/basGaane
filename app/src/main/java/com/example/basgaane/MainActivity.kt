@@ -93,7 +93,7 @@ fun BasGaaneApp(
         isUploading = isUploading,
         onDismiss = viewModel::closeAddMusicDialog,
         onAddTrack = { title, artist, uri ->
-            viewModel.addLocalTrack(
+            viewModel.addTrack(
                 title = title,
                 artist = artist,
                 audioUri = uri

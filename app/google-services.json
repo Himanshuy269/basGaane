@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "406330504058",
+    "project_id": "basgaane",
+    "storage_bucket": "basgaane.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:406330504058:android:f5a6fcd26539eccfd11cc3",
+        "android_client_info": {
+          "package_name": "com.example.basgaane"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBI93h-o3ohIMZUNdmHWOmcTutoH6W0PH0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

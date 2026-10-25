@@ -125,9 +125,10 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Extracts duration and metadata from picked audio URI, then saves to repository.
+     * Extracts duration and metadata from picked audio URI, uploads to Firebase Cloud Storage,
+     * writes metadata to Firestore for friends, or saves locally if offline.
      */
-    fun addLocalTrack(
+    fun addTrack(
         title: String,
         artist: String,
         audioUri: Uri,
@@ -150,21 +151,22 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 val finalTitle = title.trim().ifEmpty { "New Track" }
                 val finalArtist = artist.trim().ifEmpty { "My Music" }
 
-                val newSong = Song(
+                val result = repository.uploadSongToCloud(
                     title = finalTitle,
                     artist = finalArtist,
-                    audioUrl = audioUri.toString(),
-                    coverUrl = coverUrl,
+                    audioUri = audioUri,
                     durationMs = durationMs,
-                    isLocal = true,
-                    addedAt = System.currentTimeMillis()
+                    coverUrl = coverUrl
                 )
 
-                repository.addSong(newSong)
-                _uploadStatusMessage.value = "Song '$finalTitle' added successfully!"
+                if (result.isSuccess) {
+                    _uploadStatusMessage.value = "Song '$finalTitle' added and synced!"
+                } else {
+                    _uploadStatusMessage.value = "Song saved locally."
+                }
                 _isAddMusicDialogOpen.value = false
             } catch (e: Exception) {
-                _uploadStatusMessage.value = "Failed to add song: ${e.localizedMessage}"
+                _uploadStatusMessage.value = "Error adding song: ${e.localizedMessage}"
             } finally {
                 _isUploading.value = false
             }
