@@ -55,6 +55,9 @@ import com.example.basgaane.ui.common.EqualizerBars
 import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalGlassCard
 import com.example.basgaane.ui.common.crystalPill
+import com.example.basgaane.ui.theme.InputBorderUnfocused
+import com.example.basgaane.ui.theme.InputFieldContainerFocused
+import com.example.basgaane.ui.theme.InputFieldContainerUnfocused
 import com.example.basgaane.ui.theme.NeonCyan
 import com.example.basgaane.ui.theme.NeonPink
 import com.example.basgaane.ui.theme.PrismCyan
@@ -100,10 +103,10 @@ fun SearchHeaderInput(
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = TextPrimary,
             unfocusedTextColor = TextPrimary,
-            focusedContainerColor = Color(0x99171D2F),
-            unfocusedContainerColor = Color(0x660E121E),
+            focusedContainerColor = InputFieldContainerFocused,
+            unfocusedContainerColor = InputFieldContainerUnfocused,
             focusedBorderColor = PrismCyan,
-            unfocusedBorderColor = Color(0x33FFFFFF)
+            unfocusedBorderColor = InputBorderUnfocused
         ),
         modifier = modifier.fillMaxWidth()
     )
@@ -143,7 +146,7 @@ fun SearchFilterChipsRow(
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                     ),
-                    color = if (isSelected) Color.White else TextSecondary
+                    color = if (isSelected) TextPrimary else TextSecondary
                 )
             }
         }

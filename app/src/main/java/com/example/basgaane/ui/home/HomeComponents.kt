@@ -20,9 +20,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
@@ -54,6 +57,7 @@ import coil.compose.AsyncImage
 import com.example.basgaane.R
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.viewmodel.HomeTab
+import com.example.basgaane.viewmodel.ThemeMode
 import com.example.basgaane.ui.common.EqualizerBars
 import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalGlassCard
@@ -72,6 +76,8 @@ import com.example.basgaane.ui.theme.TextTertiary
 fun HomeTopBar(
     songCount: Int,
     userName: String,
+    themeMode: ThemeMode,
+    onToggleTheme: () -> Unit,
     onOpenEditProfileDialog: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -117,6 +123,32 @@ fun HomeTopBar(
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Theme toggle button (Light / Dark / System)
+            val (themeIcon, themeDesc, themeTint) = when (themeMode) {
+                ThemeMode.LIGHT -> Triple(Icons.Default.LightMode, "Light Mode", Color(0xFFF59E0B))
+                ThemeMode.DARK -> Triple(Icons.Default.DarkMode, "Dark Mode", PrismCyan)
+                ThemeMode.SYSTEM -> Triple(Icons.Default.BrightnessAuto, "System Theme", PrismViolet)
+            }
+
+            Box(
+                modifier = Modifier
+                    .crystalPill(
+                        shape = RoundedCornerShape(14.dp),
+                        isActive = false,
+                        onClick = onToggleTheme
+                    )
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = themeIcon,
+                    contentDescription = themeDesc,
+                    tint = themeTint,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(6.dp))
+
             // User Profile Pill Button
             Box(
                 modifier = Modifier
@@ -138,22 +170,22 @@ fun HomeTopBar(
                     Text(
                         text = userName,
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = Color.White,
+                        color = TextPrimary,
                         maxLines = 1
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             // Track count chip
             Box(
                 modifier = Modifier
                     .crystalPill(shape = RoundedCornerShape(14.dp))
-                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "$songCount tracks",
+                    text = "$songCount",
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                     color = TextSecondary
                 )
@@ -206,7 +238,7 @@ fun HomeTabsCapsule(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (isSelected) Color.White else TextTertiary,
+                        tint = if (isSelected) TextPrimary else TextTertiary,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -215,7 +247,7 @@ fun HomeTabsCapsule(
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         ),
-                        color = if (isSelected) Color.White else TextSecondary
+                        color = if (isSelected) TextPrimary else TextSecondary
                     )
                 }
             }

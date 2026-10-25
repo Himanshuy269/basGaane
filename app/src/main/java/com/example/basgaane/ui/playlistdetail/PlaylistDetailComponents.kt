@@ -249,9 +249,9 @@ fun PlaylistDetailActionsRow(
             contentAlignment = Alignment.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Play All", fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Play All", fontWeight = FontWeight.Bold, color = TextPrimary)
             }
         }
 

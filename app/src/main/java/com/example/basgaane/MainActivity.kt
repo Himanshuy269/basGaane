@@ -8,18 +8,24 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.basgaane.navigation.AppNavigation
 import com.example.basgaane.ui.theme.BackgroundDark
 import com.example.basgaane.ui.theme.BasGaaneTheme
+import com.example.basgaane.viewmodel.MusicViewModel
+import com.example.basgaane.viewmodel.ThemeMode
 
 /**
  * Minimal main activity entrypoint initializing edge-to-edge display,
- * runtime permissions, and delegating UI flow to [AppNavigation].
+ * dynamic light/dark theming, runtime permissions, and delegating UI flow to [AppNavigation].
  */
 class MainActivity : ComponentActivity() {
 
@@ -28,13 +34,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            BasGaaneTheme {
+            val viewModel: MusicViewModel = viewModel()
+            val themeMode by viewModel.themeMode.collectAsState()
+            val isSystemDark = isSystemInDarkTheme()
+            val isDark = when (themeMode) {
+                ThemeMode.SYSTEM -> isSystemDark
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+
+            BasGaaneTheme(darkTheme = isDark) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = BackgroundDark
                 ) {
                     PermissionHandler()
-                    AppNavigation()
+                    AppNavigation(viewModel = viewModel)
                 }
             }
         }

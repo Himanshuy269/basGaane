@@ -54,6 +54,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.basgaane.core.utils.AudioMetadataHelper
+import com.example.basgaane.ui.theme.InputFieldContainerFocused
+import com.example.basgaane.ui.theme.InputFieldContainerUnfocused
 import com.example.basgaane.ui.theme.PrismCyan
 import com.example.basgaane.ui.theme.PrismMagenta
 import com.example.basgaane.ui.theme.PrismViolet
@@ -377,8 +379,8 @@ fun AddMusicDialog(
                         unfocusedBorderColor = SurfaceDarkVariant,
                         focusedLabelColor = PrismCyan,
                         unfocusedLabelColor = TextTertiary,
-                        focusedContainerColor = Color(0x600C101C),
-                        unfocusedContainerColor = Color(0x400C101C)
+                        focusedContainerColor = InputFieldContainerFocused,
+                        unfocusedContainerColor = InputFieldContainerUnfocused
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -402,8 +404,8 @@ fun AddMusicDialog(
                         unfocusedBorderColor = SurfaceDarkVariant,
                         focusedLabelColor = PrismCyan,
                         unfocusedLabelColor = TextTertiary,
-                        focusedContainerColor = Color(0x600C101C),
-                        unfocusedContainerColor = Color(0x400C101C)
+                        focusedContainerColor = InputFieldContainerFocused,
+                        unfocusedContainerColor = InputFieldContainerUnfocused
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -427,8 +429,8 @@ fun AddMusicDialog(
                         unfocusedBorderColor = SurfaceDarkVariant,
                         focusedLabelColor = PrismMagenta,
                         unfocusedLabelColor = TextTertiary,
-                        focusedContainerColor = Color(0x600C101C),
-                        unfocusedContainerColor = Color(0x400C101C)
+                        focusedContainerColor = InputFieldContainerFocused,
+                        unfocusedContainerColor = InputFieldContainerUnfocused
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -523,13 +525,13 @@ fun AddMusicDialog(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(14.dp),
-                                    color = Color.White,
+                                    color = TextPrimary,
                                     strokeWidth = 2.dp
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Uploading...",
-                                    color = Color.White,
+                                    color = TextPrimary,
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                                 )
                             }
@@ -538,13 +540,13 @@ fun AddMusicDialog(
                                 Icon(
                                     imageVector = Icons.Default.Audiotrack,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = TextPrimary,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Add Track",
-                                    color = Color.White,
+                                    color = TextPrimary,
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                                 )
                             }

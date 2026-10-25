@@ -36,6 +36,12 @@ enum class HomeTab {
     PLAYLISTS
 }
 
+enum class ThemeMode {
+    SYSTEM,
+    LIGHT,
+    DARK
+}
+
 /**
  * Presentation ViewModel coordinating domain Use Cases and exposing UI state.
  */
@@ -105,6 +111,38 @@ class MusicViewModel(
         _userName.value = cleanName
         _userMessage.value = "✓ Profile name updated to '$cleanName'"
         _isEditProfileDialogOpen.value = false
+    }
+
+    // Theme Mode Preference State (System, Light, Dark)
+    private val themePrefs = application.getSharedPreferences("app_theme_prefs", Context.MODE_PRIVATE)
+    private val _themeMode = MutableStateFlow(
+        try {
+            val saved = themePrefs.getString("key_theme_mode", ThemeMode.SYSTEM.name)
+            ThemeMode.valueOf(saved ?: ThemeMode.SYSTEM.name)
+        } catch (_: Exception) {
+            ThemeMode.SYSTEM
+        }
+    )
+    val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+
+    fun setThemeMode(mode: ThemeMode) {
+        themePrefs.edit().putString("key_theme_mode", mode.name).apply()
+        _themeMode.value = mode
+        val label = when (mode) {
+            ThemeMode.SYSTEM -> "System Theme"
+            ThemeMode.LIGHT -> "Light Mode"
+            ThemeMode.DARK -> "Dark Mode"
+        }
+        _userMessage.value = "Theme set to $label"
+    }
+
+    fun toggleTheme() {
+        val nextMode = when (_themeMode.value) {
+            ThemeMode.SYSTEM -> ThemeMode.DARK
+            ThemeMode.DARK -> ThemeMode.LIGHT
+            ThemeMode.LIGHT -> ThemeMode.DARK
+        }
+        setThemeMode(nextMode)
     }
 
     // Tab Navigation State

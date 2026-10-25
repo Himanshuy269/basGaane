@@ -63,6 +63,7 @@ fun AppNavigation(
     val userMessage by viewModel.userMessage.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val isEditProfileDialogOpen by viewModel.isEditProfileDialogOpen.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -123,6 +124,8 @@ fun AppNavigation(
                     currentSong = playerState.currentSong,
                     isPlaying = playerState.isPlaying,
                     userName = userName,
+                    themeMode = themeMode,
+                    onToggleTheme = viewModel::toggleTheme,
                     onSongClick = viewModel::playSong,
                     onAddToPlaylistClick = viewModel::openAddToPlaylistDialog,
                     onDeleteSong = viewModel::deleteSong,
@@ -248,6 +251,8 @@ fun AppNavigation(
     EditProfileDialog(
         isOpen = isEditProfileDialogOpen,
         currentName = userName,
+        currentThemeMode = themeMode,
+        onSelectThemeMode = viewModel::setThemeMode,
         onDismiss = viewModel::closeEditProfileDialog,
         onSaveName = viewModel::setUserName
     )

@@ -33,6 +33,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.basgaane.ui.theme.InputBorderUnfocused
+import com.example.basgaane.ui.theme.InputFieldContainerFocused
+import com.example.basgaane.ui.theme.InputFieldContainerUnfocused
 import com.example.basgaane.ui.theme.PrismCyan
 import com.example.basgaane.ui.theme.PrismMagenta
 import com.example.basgaane.ui.theme.PrismViolet
@@ -124,10 +127,10 @@ fun CreatePlaylistDialog(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = TextPrimary,
                         unfocusedTextColor = TextPrimary,
-                        focusedContainerColor = Color(0x99171D2F),
-                        unfocusedContainerColor = Color(0x660E121E),
+                        focusedContainerColor = InputFieldContainerFocused,
+                        unfocusedContainerColor = InputFieldContainerUnfocused,
                         focusedBorderColor = PrismCyan,
-                        unfocusedBorderColor = Color(0x33FFFFFF),
+                        unfocusedBorderColor = InputBorderUnfocused,
                         focusedLabelColor = PrismCyan,
                         unfocusedLabelColor = TextSecondary
                     ),
@@ -148,10 +151,10 @@ fun CreatePlaylistDialog(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = TextPrimary,
                         unfocusedTextColor = TextPrimary,
-                        focusedContainerColor = Color(0x99171D2F),
-                        unfocusedContainerColor = Color(0x660E121E),
+                        focusedContainerColor = InputFieldContainerFocused,
+                        unfocusedContainerColor = InputFieldContainerUnfocused,
                         focusedBorderColor = PrismViolet,
-                        unfocusedBorderColor = Color(0x33FFFFFF),
+                        unfocusedBorderColor = InputBorderUnfocused,
                         focusedLabelColor = PrismViolet,
                         unfocusedLabelColor = TextSecondary
                     ),
@@ -197,7 +200,7 @@ fun CreatePlaylistDialog(
                             .padding(horizontal = 22.dp, vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Create", fontWeight = FontWeight.Bold, color = Color.White)
+                        Text("Create", fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                 }
             }

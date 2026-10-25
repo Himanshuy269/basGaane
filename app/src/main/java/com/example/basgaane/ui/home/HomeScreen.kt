@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.viewmodel.HomeTab
+import com.example.basgaane.viewmodel.ThemeMode
 import com.example.basgaane.ui.common.LiquidCrystalBackground
 import com.example.basgaane.ui.common.crystalPill
 import com.example.basgaane.ui.theme.BackgroundDark
@@ -44,6 +45,8 @@ fun HomeScreen(
     currentSong: Song?,
     isPlaying: Boolean,
     userName: String,
+    themeMode: ThemeMode,
+    onToggleTheme: () -> Unit,
     onSongClick: (Song) -> Unit,
     onAddToPlaylistClick: (Song) -> Unit,
     onDeleteSong: (Song) -> Unit,
@@ -70,10 +73,10 @@ fun HomeScreen(
             ExtendedFloatingActionButton(
                 onClick = onAddMusicClick,
                 containerColor = Color.Transparent,
-                contentColor = Color.White,
+                contentColor = TextPrimary,
                 shape = RoundedCornerShape(20.dp),
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add Music", tint = Color.White) },
-                text = { Text("Add Music", fontWeight = FontWeight.Bold, color = Color.White) },
+                icon = { Icon(Icons.Default.Add, contentDescription = "Add Music", tint = TextPrimary) },
+                text = { Text("Add Music", fontWeight = FontWeight.Bold, color = TextPrimary) },
                 modifier = Modifier
                     .navigationBarsPadding()
                     .padding(bottom = if (currentSong != null) 76.dp else 16.dp)
@@ -95,6 +98,8 @@ fun HomeScreen(
                 HomeTopBar(
                     songCount = songs.size,
                     userName = userName,
+                    themeMode = themeMode,
+                    onToggleTheme = onToggleTheme,
                     onOpenEditProfileDialog = onOpenEditProfileDialog
                 )
 

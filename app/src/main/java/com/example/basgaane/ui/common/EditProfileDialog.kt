@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +37,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.basgaane.ui.theme.InputFieldContainerFocused
+import com.example.basgaane.ui.theme.InputFieldContainerUnfocused
 import com.example.basgaane.ui.theme.PrismCyan
 import com.example.basgaane.ui.theme.PrismMagenta
 import com.example.basgaane.ui.theme.PrismViolet
@@ -42,11 +48,14 @@ import com.example.basgaane.ui.theme.SurfaceDarkVariant
 import com.example.basgaane.ui.theme.TextPrimary
 import com.example.basgaane.ui.theme.TextSecondary
 import com.example.basgaane.ui.theme.TextTertiary
+import com.example.basgaane.viewmodel.ThemeMode
 
 @Composable
 fun EditProfileDialog(
     isOpen: Boolean,
     currentName: String,
+    currentThemeMode: ThemeMode,
+    onSelectThemeMode: (ThemeMode) -> Unit,
     onDismiss: () -> Unit,
     onSaveName: (String) -> Unit
 ) {
@@ -102,14 +111,14 @@ fun EditProfileDialog(
 
                     Column {
                         Text(
-                            text = "Your Display Name",
+                            text = "Profile & Appearance",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold
                             ),
                             color = TextPrimary
                         )
                         Text(
-                            text = "Your friends will see this when you add music",
+                            text = "Customize your identity & theme",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
@@ -142,8 +151,8 @@ fun EditProfileDialog(
                         unfocusedBorderColor = SurfaceDarkVariant,
                         focusedLabelColor = PrismCyan,
                         unfocusedLabelColor = TextTertiary,
-                        focusedContainerColor = Color(0x600C101C),
-                        unfocusedContainerColor = Color(0x400C101C)
+                        focusedContainerColor = InputFieldContainerFocused,
+                        unfocusedContainerColor = InputFieldContainerUnfocused
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -155,6 +164,64 @@ fun EditProfileDialog(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Theme Mode Selector
+                Text(
+                    text = "App Theme",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val themeOptions = listOf(
+                        Triple(ThemeMode.SYSTEM, "System", Icons.Default.BrightnessAuto),
+                        Triple(ThemeMode.LIGHT, "Light", Icons.Default.LightMode),
+                        Triple(ThemeMode.DARK, "Dark", Icons.Default.DarkMode)
+                    )
+
+                    themeOptions.forEach { (mode, label, icon) ->
+                        val isSelected = currentThemeMode == mode
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .crystalPill(
+                                    shape = RoundedCornerShape(14.dp),
+                                    isActive = isSelected,
+                                    onClick = { onSelectThemeMode(mode) }
+                                )
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = label,
+                                    tint = if (isSelected) PrismCyan else TextTertiary,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    ),
+                                    color = if (isSelected) TextPrimary else TextSecondary
+                                )
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -201,7 +268,7 @@ fun EditProfileDialog(
                     ) {
                         Text(
                             text = "Save",
-                            color = Color.White,
+                            color = TextPrimary,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                         )
                     }

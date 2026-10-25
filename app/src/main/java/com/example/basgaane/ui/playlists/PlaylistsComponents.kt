@@ -92,9 +92,9 @@ fun PlaylistsHeader(
             contentAlignment = Alignment.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Add, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("New", fontWeight = FontWeight.Bold, color = Color.White)
+                Text("New", fontWeight = FontWeight.Bold, color = TextPrimary)
             }
         }
     }

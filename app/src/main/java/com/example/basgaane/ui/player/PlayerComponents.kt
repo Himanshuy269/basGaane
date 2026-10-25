@@ -55,6 +55,7 @@ import com.example.basgaane.R
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalPill
+import com.example.basgaane.ui.theme.PlayerTrack
 import com.example.basgaane.ui.theme.PrismBlue
 import com.example.basgaane.ui.theme.PrismCyan
 import com.example.basgaane.ui.theme.PrismMagenta
@@ -292,7 +293,7 @@ fun PlayerProgressSlider(
             colors = SliderDefaults.colors(
                 thumbColor = PrismCyan,
                 activeTrackColor = PrismCyan,
-                inactiveTrackColor = Color(0x33FFFFFF)
+                inactiveTrackColor = PlayerTrack
             ),
             modifier = Modifier.fillMaxWidth()
         )
