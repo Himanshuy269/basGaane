@@ -1,22 +1,18 @@
-package com.example.basgaane.presentation.screens
+package com.example.basgaane.ui.search
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,14 +24,9 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,216 +48,159 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.border
 import coil.compose.AsyncImage
 import com.example.basgaane.domain.model.Song
-import com.example.basgaane.presentation.components.EqualizerBars
-import com.example.basgaane.presentation.components.crystalGlassCard
-import com.example.basgaane.presentation.components.crystalPill
-import com.example.basgaane.presentation.components.formatMs
-import com.example.basgaane.presentation.theme.AccentGradientEnd
-import com.example.basgaane.presentation.theme.AccentGradientStart
-import com.example.basgaane.presentation.theme.NeonCyan
-import com.example.basgaane.presentation.theme.NeonPink
-import com.example.basgaane.presentation.theme.NeonPurple
-import com.example.basgaane.presentation.theme.PrismCyan
-import com.example.basgaane.presentation.theme.PrismMagenta
-import com.example.basgaane.presentation.theme.PrismViolet
-import com.example.basgaane.presentation.theme.SurfaceDark
-import com.example.basgaane.presentation.theme.SurfaceDarkVariant
-import com.example.basgaane.presentation.theme.TextPrimary
-import com.example.basgaane.presentation.theme.TextSecondary
-import com.example.basgaane.presentation.theme.TextTertiary
+import com.example.basgaane.ui.common.EqualizerBars
+import com.example.basgaane.ui.common.crystalGlassCard
+import com.example.basgaane.ui.common.crystalPill
+import com.example.basgaane.ui.theme.NeonCyan
+import com.example.basgaane.ui.theme.NeonPink
+import com.example.basgaane.ui.theme.PrismCyan
+import com.example.basgaane.ui.theme.PrismMagenta
+import com.example.basgaane.ui.theme.PrismViolet
+import com.example.basgaane.ui.theme.TextPrimary
+import com.example.basgaane.ui.theme.TextSecondary
+import com.example.basgaane.ui.theme.TextTertiary
 
+/**
+ * Text search input field styled with liquid crystal prism accents.
+ */
 @Composable
-fun SearchScreen(
+fun SearchHeaderInput(
     searchQuery: String,
-    selectedFilterTag: String,
     onSearchQueryChanged: (String) -> Unit,
-    onFilterTagSelected: (String) -> Unit,
-    filteredSongs: List<Song>,
-    currentSong: Song?,
-    isPlaying: Boolean,
-    onSongClick: (Song) -> Unit,
-    onAddToPlaylistClick: (Song) -> Unit,
-    onDeleteSong: (Song) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val filterTags = listOf("All", "Cloud", "Device", "Synth", "Groove", "Chill", "Acoustic")
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Title
-        Text(
-            text = "Search",
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-            color = TextPrimary
-        )
-        Text(
-            text = "Find songs by title, artist, or tags",
-            style = MaterialTheme.typography.labelMedium,
-            color = PrismCyan
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Search Input Field
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchQueryChanged,
-            placeholder = { Text("What do you want to listen to?", color = TextTertiary) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = PrismCyan
-                )
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { onSearchQueryChanged("") }) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear",
-                            tint = TextSecondary
-                        )
-                    }
-                }
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary,
-                focusedContainerColor = Color(0x99171D2F),
-                unfocusedContainerColor = Color(0x660E121E),
-                focusedBorderColor = PrismCyan,
-                unfocusedBorderColor = Color(0x33FFFFFF)
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Liquid Crystal Filter Tags Horizontal Row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            filterTags.forEach { tag ->
-                val isSelected = tag.equals(selectedFilterTag, ignoreCase = true)
-
-                Box(
-                    modifier = Modifier
-                        .crystalPill(
-                            shape = RoundedCornerShape(20.dp),
-                            isActive = isSelected,
-                            onClick = { onFilterTagSelected(tag) }
-                        )
-                        .padding(horizontal = 14.dp, vertical = 7.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = tag,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                        ),
-                        color = if (isSelected) Color.White else TextSecondary
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onSearchQueryChanged,
+        placeholder = { Text("What do you want to listen to?", color = TextTertiary) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search",
+                tint = PrismCyan
+            )
+        },
+        trailingIcon = {
+            if (searchQuery.isNotEmpty()) {
+                IconButton(onClick = { onSearchQueryChanged("") }) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Clear",
+                        tint = TextSecondary
                     )
                 }
             }
-        }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary,
+            focusedContainerColor = Color(0x99171D2F),
+            unfocusedContainerColor = Color(0x660E121E),
+            focusedBorderColor = PrismCyan,
+            unfocusedBorderColor = Color(0x33FFFFFF)
+        ),
+        modifier = modifier.fillMaxWidth()
+    )
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
+/**
+ * Horizontal scrolling list of category and source filter pills.
+ */
+@Composable
+fun SearchFilterChipsRow(
+    filterTags: List<String>,
+    selectedFilterTag: String,
+    onFilterTagSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        filterTags.forEach { tag ->
+            val isSelected = tag.equals(selectedFilterTag, ignoreCase = true)
 
-        // Results Section
-        if (filteredSongs.isEmpty()) {
             Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
+                    .crystalPill(
+                        shape = RoundedCornerShape(20.dp),
+                        isActive = isSelected,
+                        onClick = { onFilterTagSelected(tag) }
+                    )
+                    .padding(horizontal = 14.dp, vertical = 7.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                        tint = TextTertiary,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = if (searchQuery.isNotBlank()) "No tracks matching '$searchQuery'" else "No songs found for this filter",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Try searching for a different song name or artist",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextTertiary
-                    )
-                }
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
                 Text(
-                    text = "${filteredSongs.size} tracks found",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = TextTertiary
+                    text = tag,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    ),
+                    color = if (isSelected) Color.White else TextSecondary
                 )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 90.dp)
-            ) {
-                itemsIndexed(filteredSongs, key = { _, song -> song.id }) { index, song ->
-                    val isCurrent = song.id == currentSong?.id
-
-                    SearchSongItemCard(
-                        index = index + 1,
-                        song = song,
-                        isSelected = isCurrent,
-                        isPlaying = isCurrent && isPlaying,
-                        onClick = { onSongClick(song) },
-                        onAddToPlaylist = { onAddToPlaylistClick(song) },
-                        onDelete = { onDeleteSong(song) }
-                    )
-                }
             }
         }
     }
 }
 
+/**
+ * Placeholder displayed when no tracks match the query or selected tag.
+ */
 @Composable
-private fun SearchSongItemCard(
+fun SearchEmptyState(
+    searchQuery: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = TextTertiary,
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = if (searchQuery.isNotBlank()) "No tracks matching '$searchQuery'" else "No songs found for this filter",
+                style = MaterialTheme.typography.titleMedium,
+                color = TextSecondary
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Try searching for a different song name or artist",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextTertiary
+            )
+        }
+    }
+}
+
+/**
+ * Individual track card with friend attribution badge and liquid glass styling.
+ */
+@Composable
+fun SearchSongItemCard(
     index: Int,
     song: Song,
     isSelected: Boolean,
     isPlaying: Boolean,
     onClick: () -> Unit,
     onAddToPlaylist: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .crystalGlassCard(
                 shape = RoundedCornerShape(16.dp),
@@ -404,7 +338,7 @@ private fun SearchSongItemCard(
 
             if (song.durationMs > 0) {
                 Text(
-                    text = formatMs(song.durationMs),
+                    text = formatSearchDuration(song.durationMs),
                     style = MaterialTheme.typography.labelSmall,
                     color = TextTertiary
                 )

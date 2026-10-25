@@ -1,22 +1,18 @@
-package com.example.basgaane.presentation.screens
+package com.example.basgaane.ui.playlists
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -25,8 +21,6 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -47,144 +41,122 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.border
 import androidx.compose.ui.unit.dp
 import com.example.basgaane.R
 import com.example.basgaane.domain.model.Playlist
-import com.example.basgaane.presentation.components.crystalGlassCard
-import com.example.basgaane.presentation.components.crystalPill
-import com.example.basgaane.presentation.theme.AccentGradientEnd
-import com.example.basgaane.presentation.theme.AccentGradientStart
-import com.example.basgaane.presentation.theme.NeonCyan
-import com.example.basgaane.presentation.theme.NeonPink
-import com.example.basgaane.presentation.theme.NeonPurple
-import com.example.basgaane.presentation.theme.PrismCyan
-import com.example.basgaane.presentation.theme.PrismMagenta
-import com.example.basgaane.presentation.theme.PrismViolet
-import com.example.basgaane.presentation.theme.SurfaceDark
-import com.example.basgaane.presentation.theme.SurfaceDarkVariant
-import com.example.basgaane.presentation.theme.TextPrimary
-import com.example.basgaane.presentation.theme.TextSecondary
-import com.example.basgaane.presentation.theme.TextTertiary
+import com.example.basgaane.ui.common.crystalGlassCard
+import com.example.basgaane.ui.common.crystalPill
+import com.example.basgaane.ui.theme.NeonPink
+import com.example.basgaane.ui.theme.NeonPurple
+import com.example.basgaane.ui.theme.PrismCyan
+import com.example.basgaane.ui.theme.PrismMagenta
+import com.example.basgaane.ui.theme.PrismViolet
+import com.example.basgaane.ui.theme.TextPrimary
+import com.example.basgaane.ui.theme.TextSecondary
+import com.example.basgaane.ui.theme.TextTertiary
 
+/**
+ * Top title section with action pill to create a new playlist.
+ */
 @Composable
-fun PlaylistsScreen(
-    playlists: List<Playlist>,
-    onPlaylistClick: (Playlist) -> Unit,
+fun PlaylistsHeader(
     onCreatePlaylistClick: () -> Unit,
-    onDeletePlaylist: (Playlist) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Header Action Bar
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = "Playlists",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = TextPrimary
-                )
-                Text(
-                    text = "Personalized collections for every vibe",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = PrismCyan
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .crystalPill(
-                        shape = RoundedCornerShape(16.dp),
-                        isActive = true,
-                        onClick = onCreatePlaylistClick
-                    )
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("New", fontWeight = FontWeight.Bold, color = Color.White)
-                }
-            }
+        Column {
+            Text(
+                text = "Playlists",
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                color = TextPrimary
+            )
+            Text(
+                text = "Personalized collections for every vibe",
+                style = MaterialTheme.typography.labelMedium,
+                color = PrismCyan
+            )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        if (playlists.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.QueueMusic,
-                        contentDescription = null,
-                        tint = TextTertiary,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "No Playlists Yet",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Create a playlist to separate your music from your friends'!",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextTertiary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onCreatePlaylistClick,
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = NeonPurple)
-                    ) {
-                        Text("+ Create Your First Playlist", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 90.dp)
-            ) {
-                items(playlists, key = { it.id }) { playlist ->
-                    PlaylistCard(
-                        playlist = playlist,
-                        onClick = { onPlaylistClick(playlist) },
-                        onDelete = { onDeletePlaylist(playlist) }
-                    )
-                }
+        Box(
+            modifier = Modifier
+                .crystalPill(
+                    shape = RoundedCornerShape(16.dp),
+                    isActive = true,
+                    onClick = onCreatePlaylistClick
+                )
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("New", fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }
 }
 
+/**
+ * Empty state prompt when user has not yet created any playlists.
+ */
 @Composable
-private fun PlaylistCard(
+fun PlaylistsEmptyState(
+    onCreatePlaylistClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+                contentDescription = null,
+                tint = TextTertiary,
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "No Playlists Yet",
+                style = MaterialTheme.typography.titleMedium,
+                color = TextSecondary
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Create a playlist to separate your music from your friends'!",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextTertiary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onCreatePlaylistClick,
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = NeonPurple)
+            ) {
+                Text("+ Create Your First Playlist", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+/**
+ * Liquid crystal styled card representing a playlist item.
+ */
+@Composable
+fun PlaylistCard(
     playlist: Playlist,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .crystalGlassCard(
                 shape = RoundedCornerShape(18.dp),
@@ -248,7 +220,7 @@ private fun PlaylistCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "${playlist.songIds.size} tracks",
+                    text = formatPlaylistTrackCount(playlist.songIds.size),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                     color = PrismCyan
                 )

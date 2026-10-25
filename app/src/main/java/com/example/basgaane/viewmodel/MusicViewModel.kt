@@ -1,4 +1,4 @@
-package com.example.basgaane.presentation.viewmodel
+package com.example.basgaane.viewmodel
 
 import android.app.Application
 import android.content.Context

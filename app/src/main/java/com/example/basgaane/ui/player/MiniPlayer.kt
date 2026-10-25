@@ -1,13 +1,11 @@
-package com.example.basgaane.presentation.components
+package com.example.basgaane.ui.player
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.res.painterResource
-import com.example.basgaane.R
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,16 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,26 +32,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.basgaane.R
 import com.example.basgaane.domain.model.Song
-import com.example.basgaane.presentation.components.crystalGlassCard
-import com.example.basgaane.presentation.components.crystalPill
-import com.example.basgaane.presentation.theme.AccentGradientEnd
-import com.example.basgaane.presentation.theme.AccentGradientStart
-import com.example.basgaane.presentation.theme.LiquidProgressGradient
-import com.example.basgaane.presentation.theme.NeonCyan
-import com.example.basgaane.presentation.theme.NeonPurple
-import com.example.basgaane.presentation.theme.PrismCyan
-import com.example.basgaane.presentation.theme.PrismMagenta
-import com.example.basgaane.presentation.theme.PrismViolet
-import com.example.basgaane.presentation.theme.SurfaceDarkVariant
-import com.example.basgaane.presentation.theme.TextPrimary
-import com.example.basgaane.presentation.theme.TextSecondary
+import com.example.basgaane.ui.common.EqualizerBars
+import com.example.basgaane.ui.common.crystalGlassCard
+import com.example.basgaane.ui.common.crystalPill
+import com.example.basgaane.ui.theme.LiquidProgressGradient
+import com.example.basgaane.ui.theme.PrismCyan
+import com.example.basgaane.ui.theme.PrismMagenta
+import com.example.basgaane.ui.theme.PrismViolet
+import com.example.basgaane.ui.theme.TextPrimary
+import com.example.basgaane.ui.theme.TextSecondary
 
+/**
+ * Floating glassmorphic mini player docked at the bottom of the screen.
+ */
 @Composable
 fun MiniPlayer(
     currentSong: Song?,

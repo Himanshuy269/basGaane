@@ -1,7 +1,7 @@
-package com.example.basgaane.presentation.components
+package com.example.basgaane.ui.common
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,11 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.foundation.border
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,20 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.basgaane.domain.model.Playlist
 import com.example.basgaane.domain.model.Song
-import com.example.basgaane.presentation.components.crystalGlassCard
-import com.example.basgaane.presentation.components.crystalPill
-import com.example.basgaane.presentation.theme.AccentGradientEnd
-import com.example.basgaane.presentation.theme.AccentGradientStart
-import com.example.basgaane.presentation.theme.NeonCyan
-import com.example.basgaane.presentation.theme.NeonPurple
-import com.example.basgaane.presentation.theme.PrismCyan
-import com.example.basgaane.presentation.theme.PrismMagenta
-import com.example.basgaane.presentation.theme.PrismViolet
-import com.example.basgaane.presentation.theme.SurfaceDark
-import com.example.basgaane.presentation.theme.SurfaceDarkVariant
-import com.example.basgaane.presentation.theme.TextPrimary
-import com.example.basgaane.presentation.theme.TextSecondary
-import com.example.basgaane.presentation.theme.TextTertiary
+import com.example.basgaane.ui.theme.PrismCyan
+import com.example.basgaane.ui.theme.PrismMagenta
+import com.example.basgaane.ui.theme.PrismViolet
+import com.example.basgaane.ui.theme.TextPrimary
+import com.example.basgaane.ui.theme.TextSecondary
+import com.example.basgaane.ui.theme.TextTertiary
 
 @Composable
 fun AddToPlaylistDialog(

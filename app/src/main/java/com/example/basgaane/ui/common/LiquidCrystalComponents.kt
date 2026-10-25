@@ -1,4 +1,4 @@
-package com.example.basgaane.presentation.components
+package com.example.basgaane.ui.common
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -11,24 +11,21 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.basgaane.presentation.theme.BackgroundDark
-import com.example.basgaane.presentation.theme.CrystalBorderActive
-import com.example.basgaane.presentation.theme.CrystalBorderSubtle
-import com.example.basgaane.presentation.theme.PrismCyan
-import com.example.basgaane.presentation.theme.PrismMagenta
-import com.example.basgaane.presentation.theme.PrismViolet
+import com.example.basgaane.ui.theme.BackgroundDark
+import com.example.basgaane.ui.theme.CrystalBorderActive
+import com.example.basgaane.ui.theme.CrystalBorderSubtle
+import com.example.basgaane.ui.theme.PrismCyan
+import com.example.basgaane.ui.theme.PrismMagenta
+import com.example.basgaane.ui.theme.PrismViolet
 
 /**
  * Renders an ambient iridescent liquid light mesh behind the content.

@@ -1,6 +1,5 @@
-package com.example.basgaane.presentation.theme
+package com.example.basgaane.ui.theme
 
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 // BasGaane Liquid Crystal Obsidian & Base Colors

@@ -1,4 +1,4 @@
-package com.example.basgaane.presentation.components
+package com.example.basgaane.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,13 +35,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.basgaane.presentation.theme.PrismCyan
-import com.example.basgaane.presentation.theme.PrismMagenta
-import com.example.basgaane.presentation.theme.PrismViolet
-import com.example.basgaane.presentation.theme.SurfaceDarkVariant
-import com.example.basgaane.presentation.theme.TextPrimary
-import com.example.basgaane.presentation.theme.TextSecondary
-import com.example.basgaane.presentation.theme.TextTertiary
+import com.example.basgaane.ui.theme.PrismCyan
+import com.example.basgaane.ui.theme.PrismMagenta
+import com.example.basgaane.ui.theme.PrismViolet
+import com.example.basgaane.ui.theme.SurfaceDarkVariant
+import com.example.basgaane.ui.theme.TextPrimary
+import com.example.basgaane.ui.theme.TextSecondary
+import com.example.basgaane.ui.theme.TextTertiary
 
 @Composable
 fun EditProfileDialog(
