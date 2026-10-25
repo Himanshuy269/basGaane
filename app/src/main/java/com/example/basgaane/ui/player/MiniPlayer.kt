@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -41,6 +42,7 @@ import coil.compose.AsyncImage
 import com.example.basgaane.R
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.ui.common.EqualizerBars
+import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalGlassCard
 import com.example.basgaane.ui.common.crystalPill
 import com.example.basgaane.ui.theme.LiquidProgressGradient
@@ -115,39 +117,19 @@ fun MiniPlayer(
                         modifier = Modifier
                             .size(46.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(PrismViolet, PrismCyan)
-                                )
-                            )
                             .border(
                                 width = 1.dp,
                                 brush = Brush.linearGradient(
                                     listOf(PrismCyan, PrismMagenta)
                                 ),
                                 shape = RoundedCornerShape(12.dp)
-                            ),
-                        contentAlignment = Alignment.Center
+                            )
                     ) {
-                        if (!currentSong.coverUrl.isNullOrEmpty()) {
-                            AsyncImage(
-                                model = currentSong.coverUrl,
-                                contentDescription = currentSong.title,
-                                modifier = Modifier
-                                    .size(46.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.app_logo),
-                                contentDescription = currentSong.title,
-                                modifier = Modifier
-                                    .size(46.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
+                        SongCoverImage(
+                            song = currentSong,
+                            modifier = Modifier.fillMaxSize(),
+                            shape = RoundedCornerShape(12.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))

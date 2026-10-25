@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.basgaane.core.player.MusicPlayerController
 import com.example.basgaane.core.player.PlayerUiState
+import com.example.basgaane.core.utils.AudioMetadataHelper
 import com.example.basgaane.data.repository.MusicRepositoryImpl
 import com.example.basgaane.data.repository.PlaylistRepositoryImpl
 import com.example.basgaane.domain.model.Playlist
@@ -312,31 +313,27 @@ class MusicViewModel(
     }
 
     /**
-     * Extracts duration and delegates to domain AddSongUseCase for upload / storage.
+     * Extracts duration, embedded cover art, and delegates to domain AddSongUseCase for upload / storage.
      */
     fun addTrack(
         title: String,
         artist: String,
         audioUri: Uri,
+        coverBytes: ByteArray? = null,
+        coverUri: Uri? = null,
         coverUrl: String? = null,
         addedBy: String? = null
     ) {
         viewModelScope.launch {
             _isUploading.value = true
             try {
-                var durationMs = 0L
-                try {
-                    val retriever = MediaMetadataRetriever()
-                    retriever.setDataSource(getApplication(), audioUri)
-                    val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    durationMs = time?.toLongOrNull() ?: 0L
-                    retriever.release()
-                } catch (e: Exception) {
-                    // Fallback if retriever cannot parse
-                }
+                // Extract metadata (duration and embedded picture) if not provided
+                val extracted = AudioMetadataHelper.extractMetadata(getApplication(), audioUri)
+                val durationMs = if (extracted.durationMs > 0L) extracted.durationMs else 0L
+                val resolvedCoverBytes = coverBytes ?: extracted.embeddedPicture
 
-                val finalTitle = title.trim().ifEmpty { "New Track" }
-                val finalArtist = artist.trim().ifEmpty { "My Music" }
+                val finalTitle = title.trim().ifEmpty { extracted.title ?: "New Track" }
+                val finalArtist = artist.trim().ifEmpty { extracted.artist ?: "My Music" }
                 val finalAddedBy = (addedBy ?: _userName.value).trim().ifEmpty { _userName.value }
 
                 // Save uploader name as profile name if changed
@@ -350,6 +347,8 @@ class MusicViewModel(
                     artist = finalArtist,
                     audioUri = audioUri,
                     durationMs = durationMs,
+                    coverBytes = resolvedCoverBytes,
+                    coverUri = coverUri,
                     coverUrl = coverUrl,
                     addedBy = finalAddedBy
                 )

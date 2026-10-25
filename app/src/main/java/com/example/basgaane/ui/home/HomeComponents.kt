@@ -55,6 +55,7 @@ import com.example.basgaane.R
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.viewmodel.HomeTab
 import com.example.basgaane.ui.common.EqualizerBars
+import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalGlassCard
 import com.example.basgaane.ui.common.crystalPill
 import com.example.basgaane.ui.theme.PrismCyan
@@ -323,18 +324,11 @@ fun SongItemCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Artwork / Squircle
+            // Artwork with automatic embedded image detection or procedural crystal cover
             Box(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        if (isSelected) {
-                            Brush.linearGradient(listOf(PrismViolet, PrismCyan))
-                        } else {
-                            Brush.linearGradient(listOf(Color(0xFF1E2638), Color(0xFF131826)))
-                        }
-                    )
                     .border(
                         width = 1.dp,
                         brush = Brush.linearGradient(
@@ -342,28 +336,15 @@ fun SongItemCard(
                             else listOf(Color(0x33FFFFFF), Color(0x11FFFFFF))
                         ),
                         shape = RoundedCornerShape(14.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                    )
             ) {
-                if (!song.coverUrl.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = song.coverUrl,
-                        contentDescription = song.title,
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(RoundedCornerShape(14.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                } else if (isSelected && isPlaying) {
-                    EqualizerBars(isPlaying = true, barColor = Color.White)
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.MusicNote,
-                        contentDescription = null,
-                        tint = if (isSelected) Color.White else TextTertiary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                SongCoverImage(
+                    song = song,
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(14.dp),
+                    showEqualizerIfPlaying = true,
+                    isPlaying = isSelected && isPlaying
+                )
             }
 
             Spacer(modifier = Modifier.width(14.dp))

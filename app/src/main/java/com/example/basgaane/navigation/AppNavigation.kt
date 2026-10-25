@@ -232,11 +232,13 @@ fun AppNavigation(
         isUploading = isUploading,
         currentUserName = userName,
         onDismiss = viewModel::closeAddMusicDialog,
-        onAddTrack = { title, artist, uri, addedBy ->
+        onAddTrack = { title, artist, uri, coverBytes, coverUri, addedBy ->
             viewModel.addTrack(
                 title = title,
                 artist = artist,
                 audioUri = uri,
+                coverBytes = coverBytes,
+                coverUri = coverUri,
                 addedBy = addedBy
             )
         }

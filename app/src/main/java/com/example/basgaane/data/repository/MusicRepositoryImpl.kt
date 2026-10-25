@@ -3,6 +3,7 @@ package com.example.basgaane.data.repository
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import com.example.basgaane.core.utils.AudioMetadataHelper
 import com.example.basgaane.data.datasource.local.LocalSongDataSource
 import com.example.basgaane.data.datasource.remote.FirebaseSongDataSource
 import com.example.basgaane.domain.model.Song
@@ -21,7 +22,7 @@ import java.util.UUID
  * with Firebase Cloud Storage and Firestore real-time sync.
  */
 class MusicRepositoryImpl(
-    context: Context,
+    private val context: Context,
     private val localDataSource: LocalSongDataSource = LocalSongDataSource(context),
     private val remoteDataSource: FirebaseSongDataSource = FirebaseSongDataSource(context),
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
@@ -59,10 +60,21 @@ class MusicRepositoryImpl(
             combinedMap[song.id] = song
         }
 
-        // 2. Add local tracks
+        // 2. Add local tracks (backfilling embedded album art if missing)
         for (song in localList) {
             if (!combinedMap.containsKey(song.id)) {
-                combinedMap[song.id] = song
+                val songWithCover = if (song.coverUrl.isNullOrEmpty() && (song.audioUrl.startsWith("content://") || song.audioUrl.startsWith("file://"))) {
+                    val pic = AudioMetadataHelper.extractEmbeddedPicture(context, song.audioUrl)
+                    if (pic != null) {
+                        val localPath = AudioMetadataHelper.saveCoverLocally(context, song.id, pic)
+                        if (localPath != null) {
+                            val updated = song.copy(coverUrl = localPath)
+                            localDataSource.saveSong(updated)
+                            updated
+                        } else song
+                    } else song
+                } else song
+                combinedMap[song.id] = songWithCover
             }
         }
 
@@ -81,35 +93,73 @@ class MusicRepositoryImpl(
         artist: String,
         audioUri: Uri,
         durationMs: Long,
+        coverBytes: ByteArray?,
+        coverUri: Uri?,
         coverUrl: String?,
         addedBy: String
     ): Result<Song> = withContext(Dispatchers.IO) {
         val songId = UUID.randomUUID().toString()
 
         Log.d(TAG, "Starting uploadAndAddSong for '$title' ($songId) added by '$addedBy'...")
+
+        // 1. Resolve cover image bytes (from parameter, image Uri, or embedded ID3 picture in audioUri)
+        var resolvedCoverBytes: ByteArray? = coverBytes
+        if (resolvedCoverBytes == null && coverUri != null) {
+            try {
+                resolvedCoverBytes = context.contentResolver.openInputStream(coverUri)?.use { it.readBytes() }
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not read coverUri: ${e.message}")
+            }
+        }
+        if (resolvedCoverBytes == null && coverUrl.isNullOrEmpty()) {
+            resolvedCoverBytes = AudioMetadataHelper.extractEmbeddedPicture(context, audioUri.toString())
+        }
+
+        // Cache cover locally if bytes are present
+        var localCoverUrl: String? = null
+        if (resolvedCoverBytes != null) {
+            localCoverUrl = AudioMetadataHelper.saveCoverLocally(context, songId, resolvedCoverBytes)
+        }
+
+        // 2. Upload audio file to Cloud Storage
         val uploadResult = remoteDataSource.uploadAudio(audioUri, songId)
 
         if (uploadResult.isSuccess) {
             val audioUrl = uploadResult.getOrThrow()
+
+            // 3. Upload cover image to Cloud Storage if available so all friends see it
+            var finalRemoteCoverUrl: String? = coverUrl
+            if (resolvedCoverBytes != null) {
+                val coverUploadResult = remoteDataSource.uploadCoverImage(resolvedCoverBytes, songId)
+                if (coverUploadResult.isSuccess) {
+                    finalRemoteCoverUrl = coverUploadResult.getOrThrow()
+                } else {
+                    Log.w(TAG, "Audio uploaded, but cover image upload failed: ${coverUploadResult.exceptionOrNull()?.message}")
+                    finalRemoteCoverUrl = localCoverUrl ?: coverUrl
+                }
+            } else if (finalRemoteCoverUrl.isNullOrEmpty()) {
+                finalRemoteCoverUrl = localCoverUrl
+            }
+
             val cloudSong = Song(
                 id = songId,
                 title = title,
                 artist = artist,
                 audioUrl = audioUrl,
-                coverUrl = coverUrl,
+                coverUrl = finalRemoteCoverUrl,
                 durationMs = durationMs,
                 isLocal = false,
                 addedAt = System.currentTimeMillis(),
                 addedBy = addedBy
             )
 
-            // Save to Firestore so friend receives it via real-time snapshot
+            // Save to Firestore so friends receive it via real-time snapshot
             val firestoreResult = remoteDataSource.saveSongDocument(cloudSong)
             if (firestoreResult.isSuccess) {
                 // Also cache locally with the cloud download URL
                 localDataSource.saveSong(cloudSong)
                 combineAndEmit()
-                Log.d(TAG, "Song successfully uploaded and published to Firestore!")
+                Log.d(TAG, "Song successfully uploaded and published to Firestore with coverUrl: $finalRemoteCoverUrl")
                 Result.success(cloudSong)
             } else {
                 val err = firestoreResult.exceptionOrNull()
@@ -128,7 +178,7 @@ class MusicRepositoryImpl(
                 title = title,
                 artist = artist,
                 audioUrl = audioUri.toString(),
-                coverUrl = coverUrl,
+                coverUrl = localCoverUrl ?: coverUrl,
                 durationMs = durationMs,
                 isLocal = true,
                 addedAt = System.currentTimeMillis(),

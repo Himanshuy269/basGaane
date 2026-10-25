@@ -177,6 +177,42 @@ class FirebaseSongDataSource(
     }
 
     /**
+     * Uploads the cover image (embedded ID3 picture or picked image) to Firebase Cloud Storage.
+     * Returns the public image download URL.
+     */
+    suspend fun uploadCoverImage(imageBytes: ByteArray, songId: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            ensureAuthenticated()
+
+            val storageRef = storage.reference
+            val fileName = "cover_${songId}.jpg"
+            val fileRef = storageRef.child("covers").child(fileName)
+
+            val metadata = StorageMetadata.Builder()
+                .setContentType("image/jpeg")
+                .setCustomMetadata("uploadedAt", System.currentTimeMillis().toString())
+                .build()
+
+            Log.d(TAG, "Uploading cover image to Firebase Storage: covers/$fileName (${imageBytes.size} bytes)...")
+
+            val uploadTask = fileRef.putBytes(imageBytes, metadata)
+            val urlTask = uploadTask.continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    throw task.exception ?: Exception("Cover image upload failed.")
+                }
+                fileRef.downloadUrl
+            }
+
+            val downloadUrl = Tasks.await(urlTask).toString()
+            Log.d(TAG, "Cover image download URL obtained: $downloadUrl")
+            Result.success(downloadUrl)
+        } catch (e: Exception) {
+            Log.w(TAG, "Cover image upload failed: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Writes track metadata to Firestore so all friends can discover and stream it.
      */
     suspend fun saveSongDocument(song: Song): Result<Unit> = withContext(Dispatchers.IO) {

@@ -15,6 +15,8 @@ class AddSongUseCase(
         artist: String,
         audioUri: Uri,
         durationMs: Long,
+        coverBytes: ByteArray? = null,
+        coverUri: Uri? = null,
         coverUrl: String? = null,
         addedBy: String = "Friend"
     ): Result<Song> {
@@ -27,6 +29,8 @@ class AddSongUseCase(
             artist = cleanArtist,
             audioUri = audioUri,
             durationMs = durationMs,
+            coverBytes = coverBytes,
+            coverUri = coverUri,
             coverUrl = coverUrl,
             addedBy = cleanAddedBy
         )

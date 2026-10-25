@@ -53,6 +53,7 @@ import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.example.basgaane.R
 import com.example.basgaane.domain.model.Song
+import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalPill
 import com.example.basgaane.ui.theme.PrismBlue
 import com.example.basgaane.ui.theme.PrismCyan
@@ -152,25 +153,14 @@ fun VinylDisc(
                     .rotate(if (isPlaying) rotation else 0f),
                 contentAlignment = Alignment.Center
             ) {
-                if (!song.coverUrl.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = song.coverUrl,
-                        contentDescription = song.title,
-                        modifier = Modifier
-                            .size(150.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.app_logo),
-                        contentDescription = song.title,
-                        modifier = Modifier
-                            .size(150.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+                SongCoverImage(
+                    song = song,
+                    modifier = Modifier
+                        .size(150.dp)
+                        .clip(CircleShape),
+                    shape = CircleShape,
+                    contentScale = ContentScale.Crop
+                )
 
                 // Center spindle
                 Box(

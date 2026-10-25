@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,6 +53,7 @@ import com.example.basgaane.R
 import com.example.basgaane.domain.model.Playlist
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.ui.common.EqualizerBars
+import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalGlassCard
 import com.example.basgaane.ui.common.crystalPill
 import com.example.basgaane.ui.theme.NeonPink
@@ -305,13 +307,6 @@ fun PlaylistItemCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (isSelected) {
-                            Brush.linearGradient(listOf(PrismViolet, PrismCyan))
-                        } else {
-                            Brush.linearGradient(listOf(Color(0xFF1E2638), Color(0xFF131826)))
-                        }
-                    )
                     .border(
                         width = 1.dp,
                         brush = Brush.linearGradient(
@@ -319,28 +314,15 @@ fun PlaylistItemCard(
                             else listOf(Color(0x33FFFFFF), Color(0x11FFFFFF))
                         ),
                         shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                    )
             ) {
-                if (!song.coverUrl.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = song.coverUrl,
-                        contentDescription = song.title,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                } else if (isSelected && isPlaying) {
-                    EqualizerBars(isPlaying = true, barColor = Color.White)
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.MusicNote,
-                        contentDescription = null,
-                        tint = if (isSelected) Color.White else TextTertiary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                SongCoverImage(
+                    song = song,
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(12.dp),
+                    showEqualizerIfPlaying = true,
+                    isPlaying = isSelected && isPlaying
+                )
             }
 
             Spacer(modifier = Modifier.width(14.dp))

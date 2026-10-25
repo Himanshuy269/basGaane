@@ -15,6 +15,8 @@ interface MusicRepository {
         artist: String,
         audioUri: Uri,
         durationMs: Long,
+        coverBytes: ByteArray? = null,
+        coverUri: Uri? = null,
         coverUrl: String? = null,
         addedBy: String = "Friend"
     ): Result<Song>

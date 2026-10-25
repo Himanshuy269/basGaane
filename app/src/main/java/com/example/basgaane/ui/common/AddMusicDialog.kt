@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,12 +22,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -42,11 +46,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage
+import com.example.basgaane.core.utils.AudioMetadataHelper
 import com.example.basgaane.ui.theme.PrismCyan
 import com.example.basgaane.ui.theme.PrismMagenta
 import com.example.basgaane.ui.theme.PrismViolet
@@ -61,7 +68,14 @@ fun AddMusicDialog(
     isUploading: Boolean,
     currentUserName: String = "Friend",
     onDismiss: () -> Unit,
-    onAddTrack: (title: String, artist: String, audioUri: Uri, addedBy: String) -> Unit
+    onAddTrack: (
+        title: String,
+        artist: String,
+        audioUri: Uri,
+        coverBytes: ByteArray?,
+        coverUri: Uri?,
+        addedBy: String
+    ) -> Unit
 ) {
     if (!isOpen) return
 
@@ -73,12 +87,16 @@ fun AddMusicDialog(
     var addedBy by remember { mutableStateOf(currentUserName) }
     var validationError by remember { mutableStateOf<String?>(null) }
 
+    var detectedCoverBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var customCoverUri by remember { mutableStateOf<Uri?>(null) }
+
     LaunchedEffect(currentUserName) {
         if (addedBy.isBlank() || addedBy == "Friend") {
             addedBy = currentUserName
         }
     }
 
+    // Audio file picker
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -89,16 +107,38 @@ fun AddMusicDialog(
                 context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                     val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                     if (nameIndex != -1 && cursor.moveToFirst()) {
-                        val name = cursor.getString(nameIndex)
-                        fileName = name
-                        if (title.isBlank()) {
-                            title = name.substringBeforeLast(".")
-                        }
+                        fileName = cursor.getString(nameIndex)
                     }
                 }
             } catch (e: Exception) {
                 fileName = "Selected Audio Track"
             }
+
+            // Extract ID3 metadata and embedded cover art
+            val metadata = AudioMetadataHelper.extractMetadata(context, uri)
+            if (!metadata.title.isNullOrBlank()) {
+                title = metadata.title
+            } else if (title.isBlank() && fileName != null) {
+                title = fileName?.substringBeforeLast(".") ?: ""
+            }
+
+            if (!metadata.artist.isNullOrBlank()) {
+                artist = metadata.artist
+            }
+
+            if (metadata.embeddedPicture != null) {
+                detectedCoverBytes = metadata.embeddedPicture
+                customCoverUri = null
+            }
+        }
+    }
+
+    // Optional custom image picker
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            customCoverUri = uri
         }
     }
 
@@ -163,7 +203,7 @@ fun AddMusicDialog(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // File Picker Box
+                // Audio File Picker Box
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -222,6 +262,96 @@ fun AddMusicDialog(
                                     color = PrismCyan
                                 )
                             }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Song Cover Image Section (Shows embedded picture if detected, or picker)
+                val activeCoverModel: Any? = customCoverUri ?: detectedCoverBytes
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0x300C101C))
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.linearGradient(listOf(Color(0x33FFFFFF), Color(0x11FFFFFF))),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        .padding(10.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Thumbnail preview
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(0xFF131726))
+                                .border(1.dp, PrismCyan.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (activeCoverModel != null) {
+                                AsyncImage(
+                                    model = activeCoverModel,
+                                    contentDescription = "Cover Image Preview",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Image,
+                                    contentDescription = null,
+                                    tint = TextTertiary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = when {
+                                    customCoverUri != null -> "Custom Cover Image Selected"
+                                    detectedCoverBytes != null -> "✓ Embedded Album Art Found!"
+                                    else -> "Cover Artwork"
+                                },
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = if (activeCoverModel != null) PrismCyan else TextPrimary
+                            )
+                            Text(
+                                text = when {
+                                    customCoverUri != null -> "Tap Change to select another"
+                                    detectedCoverBytes != null -> "Image will be uploaded with song"
+                                    else -> "Optional: pick custom art or auto-generate"
+                                },
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                                color = TextTertiary
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .crystalPill(
+                                    shape = RoundedCornerShape(10.dp),
+                                    isActive = activeCoverModel != null,
+                                    onClick = { imagePickerLauncher.launch("image/*") }
+                                )
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = if (activeCoverModel != null) "Change" else "Choose",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = if (activeCoverModel != null) Color.White else PrismCyan
+                            )
                         }
                     }
                 }
@@ -381,6 +511,8 @@ fun AddMusicDialog(
                                         title.trim(),
                                         artist.trim().ifEmpty { "Unknown Artist" },
                                         uri,
+                                        detectedCoverBytes,
+                                        customCoverUri,
                                         addedBy.trim().ifEmpty { currentUserName }
                                     )
                                 }
