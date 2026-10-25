@@ -7,6 +7,7 @@ A sleek, cool, and modern Android music player built with **Kotlin** and **Jetpa
 ## ✨ Features
 
 - **Cool & Minimalist Dark UI**: Crafted with modern Material 3, cyber-neon accents (Violet `#8B5CF6` & Cyan `#06B6D4`), and edge-to-edge support.
+- **Custom Futuristic 3D Logo**: High-res glassmorphic squircle icon with prismatic glow for Android launcher adaptive icons and in-app header branding.
 - **AndroidX Media3 Audio Engine**:
   - Background audio playback using `MediaSessionService`.
   - Notification controls with live playback progress, Play/Pause, Next, and Previous.
