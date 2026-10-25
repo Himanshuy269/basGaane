@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -115,6 +118,7 @@ fun HomeScreen(
 ) {
     Scaffold(
         containerColor = BackgroundDark,
+        contentWindowInsets = WindowInsets.safeDrawing,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
@@ -135,20 +139,24 @@ fun HomeScreen(
                     shape = RoundedCornerShape(16.dp),
                     icon = { Icon(Icons.Default.Add, contentDescription = "Add Music") },
                     text = { Text("Add Music", fontWeight = FontWeight.Bold) },
-                    modifier = Modifier.padding(bottom = if (currentSong != null) 72.dp else 16.dp)
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .padding(bottom = if (currentSong != null) 72.dp else 16.dp)
                 )
             }
         },
         bottomBar = {
-            MiniPlayer(
-                currentSong = currentSong,
-                isPlaying = isPlaying,
-                progressMs = progressMs,
-                durationMs = durationMs,
-                onPlayPause = onPlayPause,
-                onSkipNext = onSkipNext,
-                onClick = onMiniPlayerClick
-            )
+            Box(modifier = Modifier.navigationBarsPadding()) {
+                MiniPlayer(
+                    currentSong = currentSong,
+                    isPlaying = isPlaying,
+                    progressMs = progressMs,
+                    durationMs = durationMs,
+                    onPlayPause = onPlayPause,
+                    onSkipNext = onSkipNext,
+                    onClick = onMiniPlayerClick
+                )
+            }
         },
         modifier = modifier
     ) { innerPadding ->

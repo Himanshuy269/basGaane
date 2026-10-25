@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -41,6 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -127,12 +130,17 @@ fun FullPlayerSheet(
         containerColor = BackgroundDark,
         dragHandle = null
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Scaffold(
+            containerColor = BackgroundDark,
+            contentWindowInsets = WindowInsets.safeDrawing
+        ) { sheetPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(sheetPadding)
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             // Header Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -390,6 +398,7 @@ fun FullPlayerSheet(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
 }
 
 fun formatMs(ms: Long): String {
