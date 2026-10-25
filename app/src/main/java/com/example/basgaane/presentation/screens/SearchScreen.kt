@@ -56,15 +56,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.border
 import coil.compose.AsyncImage
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.presentation.components.EqualizerBars
+import com.example.basgaane.presentation.components.crystalGlassCard
+import com.example.basgaane.presentation.components.crystalPill
 import com.example.basgaane.presentation.components.formatMs
 import com.example.basgaane.presentation.theme.AccentGradientEnd
 import com.example.basgaane.presentation.theme.AccentGradientStart
 import com.example.basgaane.presentation.theme.NeonCyan
 import com.example.basgaane.presentation.theme.NeonPink
 import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.PrismCyan
+import com.example.basgaane.presentation.theme.PrismMagenta
+import com.example.basgaane.presentation.theme.PrismViolet
 import com.example.basgaane.presentation.theme.SurfaceDark
 import com.example.basgaane.presentation.theme.SurfaceDarkVariant
 import com.example.basgaane.presentation.theme.TextPrimary
@@ -103,7 +109,7 @@ fun SearchScreen(
         Text(
             text = "Find songs by title, artist, or tags",
             style = MaterialTheme.typography.labelMedium,
-            color = NeonCyan
+            color = PrismCyan
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -117,7 +123,7 @@ fun SearchScreen(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",
-                    tint = NeonPurple
+                    tint = PrismCyan
                 )
             },
             trailingIcon = {
@@ -132,21 +138,21 @@ fun SearchScreen(
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = TextPrimary,
                 unfocusedTextColor = TextPrimary,
-                focusedContainerColor = SurfaceDark,
-                unfocusedContainerColor = SurfaceDark,
-                focusedBorderColor = NeonCyan,
-                unfocusedBorderColor = SurfaceDarkVariant
+                focusedContainerColor = Color(0x99171D2F),
+                unfocusedContainerColor = Color(0x660E121E),
+                focusedBorderColor = PrismCyan,
+                unfocusedBorderColor = Color(0x33FFFFFF)
             ),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-        // Filter Tags Horizontal Row
+        // Liquid Crystal Filter Tags Horizontal Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -156,28 +162,24 @@ fun SearchScreen(
             filterTags.forEach { tag ->
                 val isSelected = tag.equals(selectedFilterTag, ignoreCase = true)
 
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onFilterTagSelected(tag) },
-                    label = {
-                        Text(
-                            text = tag,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) Color.White else TextSecondary
+                Box(
+                    modifier = Modifier
+                        .crystalPill(
+                            shape = RoundedCornerShape(20.dp),
+                            isActive = isSelected,
+                            onClick = { onFilterTagSelected(tag) }
                         )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = SurfaceDark,
-                        selectedContainerColor = NeonPurple
-                    ),
-                    shape = RoundedCornerShape(20.dp),
-                    border = FilterChipDefaults.filterChipBorder(
-                        borderColor = if (isSelected) NeonPurple else SurfaceDarkVariant,
-                        selectedBorderColor = NeonPurple,
-                        enabled = true,
-                        selected = isSelected
+                        .padding(horizontal = 14.dp, vertical = 7.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = tag,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        ),
+                        color = if (isSelected) Color.White else TextSecondary
                     )
-                )
+                }
             }
         }
 
@@ -262,14 +264,14 @@ private fun SearchSongItemCard(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) SurfaceDarkVariant else SurfaceDark
-        ),
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .crystalGlassCard(
+                shape = RoundedCornerShape(16.dp),
+                isSelected = isSelected,
+                onClick = onClick
+            )
     ) {
         Row(
             modifier = Modifier
@@ -279,14 +281,22 @@ private fun SearchSongItemCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(
                         if (isSelected) {
-                            Brush.linearGradient(listOf(AccentGradientStart, AccentGradientEnd))
+                            Brush.linearGradient(listOf(PrismViolet, PrismCyan))
                         } else {
-                            Brush.linearGradient(listOf(SurfaceDarkVariant, SurfaceDarkVariant))
+                            Brush.linearGradient(listOf(Color(0xFF1E2638), Color(0xFF131826)))
                         }
+                    )
+                    .border(
+                        width = 1.dp,
+                        brush = Brush.linearGradient(
+                            if (isSelected) listOf(PrismCyan, PrismMagenta)
+                            else listOf(Color(0x33FFFFFF), Color(0x11FFFFFF))
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -295,8 +305,8 @@ private fun SearchSongItemCard(
                         model = song.coverUrl,
                         contentDescription = song.title,
                         modifier = Modifier
-                            .size(46.dp)
-                            .clip(RoundedCornerShape(10.dp)),
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else if (isSelected && isPlaying) {
@@ -306,12 +316,12 @@ private fun SearchSongItemCard(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         tint = if (isSelected) Color.White else TextTertiary,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -319,12 +329,12 @@ private fun SearchSongItemCard(
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                     ),
-                    color = if (isSelected) NeonCyan else TextPrimary,
+                    color = if (isSelected) PrismCyan else TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(3.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -341,21 +351,23 @@ private fun SearchSongItemCard(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (song.isLocal) SurfaceDark else NeonPurple.copy(alpha = 0.15f))
-                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                            .crystalPill(
+                                shape = RoundedCornerShape(6.dp),
+                                isActive = !song.isLocal
+                            )
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Icon(
                             imageVector = if (song.isLocal) Icons.Default.PhoneAndroid else Icons.Default.CloudDone,
                             contentDescription = null,
-                            tint = if (song.isLocal) TextTertiary else NeonCyan,
+                            tint = if (song.isLocal) TextTertiary else PrismCyan,
                             modifier = Modifier.size(10.dp)
                         )
                         Spacer(modifier = Modifier.width(3.dp))
                         Text(
                             text = if (song.isLocal) "Device" else "Cloud",
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = if (song.isLocal) TextTertiary else NeonCyan
+                            color = if (song.isLocal) TextTertiary else PrismCyan
                         )
                     }
                 }

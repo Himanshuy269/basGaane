@@ -58,11 +58,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.border
 import coil.compose.AsyncImage
 import com.example.basgaane.R
 import com.example.basgaane.domain.model.Playlist
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.presentation.components.EqualizerBars
+import com.example.basgaane.presentation.components.LiquidCrystalBackground
+import com.example.basgaane.presentation.components.crystalGlassCard
+import com.example.basgaane.presentation.components.crystalPill
 import com.example.basgaane.presentation.components.formatMs
 import com.example.basgaane.presentation.theme.AccentGradientEnd
 import com.example.basgaane.presentation.theme.AccentGradientStart
@@ -70,6 +74,9 @@ import com.example.basgaane.presentation.theme.BackgroundDark
 import com.example.basgaane.presentation.theme.NeonCyan
 import com.example.basgaane.presentation.theme.NeonPink
 import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.PrismCyan
+import com.example.basgaane.presentation.theme.PrismMagenta
+import com.example.basgaane.presentation.theme.PrismViolet
 import com.example.basgaane.presentation.theme.SurfaceDark
 import com.example.basgaane.presentation.theme.SurfaceDarkVariant
 import com.example.basgaane.presentation.theme.TextPrimary
@@ -102,239 +109,250 @@ fun PlaylistDetailScreen(
 
     var showPlaylistMenu by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundDark)
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Top Navigation Bar
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+    LiquidCrystalBackground(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(SurfaceDarkVariant)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Top Navigation Bar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = TextPrimary
-                )
-            }
-
-            Text(
-                text = "Playlist",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = TextSecondary
-            )
-
-            Box {
-                IconButton(
-                    onClick = { showPlaylistMenu = true },
+                Box(
                     modifier = Modifier
-                        .clip(CircleShape)
-                        .background(SurfaceDarkVariant)
+                        .size(40.dp)
+                        .crystalPill(shape = CircleShape, isActive = false, onClick = onBack),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Options",
-                        tint = TextPrimary
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = TextPrimary,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
-                DropdownMenu(
-                    expanded = showPlaylistMenu,
-                    onDismissRequest = { showPlaylistMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Delete Playlist", color = NeonPink) },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = NeonPink
-                            )
-                        },
-                        onClick = {
-                            showPlaylistMenu = false
-                            onDeletePlaylist()
-                        }
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Header Card with Vinyl/Cover artwork
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
-                .background(
-                    Brush.linearGradient(
-                        listOf(
-                            SurfaceDarkVariant,
-                            SurfaceDark
-                        )
-                    )
-                )
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(90.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(AccentGradientStart, AccentGradientEnd)
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.app_logo),
-                    contentDescription = null,
-                    modifier = Modifier.size(56.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = playlist.name,
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                    color = TextPrimary,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    text = "Playlist",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = TextSecondary
                 )
 
-                if (playlist.description.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = playlist.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .crystalPill(shape = CircleShape, isActive = false, onClick = { showPlaylistMenu = true }),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Options",
+                            tint = TextPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${playlistSongs.size} tracks",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = NeonCyan
-                    )
-
-                    if (totalDurationMs > 0) {
-                        Text(
-                            text = " • ${formatMs(totalDurationMs)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextTertiary
+                    DropdownMenu(
+                        expanded = showPlaylistMenu,
+                        onDismissRequest = { showPlaylistMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Delete Playlist", color = NeonPink) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = NeonPink
+                                )
+                            },
+                            onClick = {
+                                showPlaylistMenu = false
+                                onDeletePlaylist()
+                            }
                         )
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Play All & Shuffle Buttons
-        if (playlistSongs.isNotEmpty()) {
+            // Header Card with Vinyl/Cover artwork
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .crystalGlassCard(shape = RoundedCornerShape(20.dp))
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = { onPlayAll(playlistSongs) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NeonPurple,
-                        contentColor = Color.White
-                    )
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(PrismViolet, PrismCyan)
+                            )
+                        )
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.linearGradient(
+                                listOf(PrismCyan, PrismMagenta)
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Play All", fontWeight = FontWeight.Bold)
+                    Image(
+                        painter = painterResource(id = R.drawable.app_logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        contentScale = ContentScale.Fit
+                    )
                 }
 
-                OutlinedButton(
-                    onClick = { onShufflePlay(playlistSongs) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = NeonCyan
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = playlist.name,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                        color = TextPrimary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
-                ) {
-                    Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Shuffle", fontWeight = FontWeight.Bold)
+
+                    if (playlist.description.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = playlist.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${playlistSongs.size} tracks",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = PrismCyan
+                        )
+
+                        if (totalDurationMs > 0) {
+                            Text(
+                                text = " • ${formatMs(totalDurationMs)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextTertiary
+                            )
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-        }
 
-        // Track List
-        if (playlistSongs.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.QueueMusic,
-                        contentDescription = null,
-                        tint = TextTertiary,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "This playlist is empty",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Go to Home or Search and tap ⋮ to add songs!",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextTertiary
-                    )
+            // Play All & Shuffle Buttons
+            if (playlistSongs.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .crystalPill(
+                                shape = RoundedCornerShape(16.dp),
+                                isActive = true,
+                                onClick = { onPlayAll(playlistSongs) }
+                            )
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Play All", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .crystalPill(
+                                shape = RoundedCornerShape(16.dp),
+                                isActive = false,
+                                onClick = { onShufflePlay(playlistSongs) }
+                            )
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Shuffle, contentDescription = null, tint = PrismCyan, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Shuffle", fontWeight = FontWeight.Bold, color = PrismCyan)
+                        }
+                    }
                 }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 90.dp)
-            ) {
-                itemsIndexed(playlistSongs, key = { _, s -> s.id }) { index, song ->
-                    val isCurrent = song.id == currentSong?.id
 
-                    PlaylistItemCard(
-                        index = index + 1,
-                        song = song,
-                        isSelected = isCurrent,
-                        isPlaying = isCurrent && isPlaying,
-                        onClick = { onSongClick(song, playlistSongs) },
-                        onRemove = { onRemoveSongFromPlaylist(song.id) }
-                    )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Track List
+            if (playlistSongs.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+                            contentDescription = null,
+                            tint = TextTertiary,
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "This playlist is empty",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextSecondary
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Go to Home or Search and tap ⋮ to add songs!",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextTertiary
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 90.dp)
+                ) {
+                    itemsIndexed(playlistSongs, key = { _, s -> s.id }) { index, song ->
+                        val isCurrent = song.id == currentSong?.id
+
+                        PlaylistItemCard(
+                            index = index + 1,
+                            song = song,
+                            isSelected = isCurrent,
+                            isPlaying = isCurrent && isPlaying,
+                            onClick = { onSongClick(song, playlistSongs) },
+                            onRemove = { onRemoveSongFromPlaylist(song.id) }
+                        )
+                    }
                 }
             }
         }
@@ -350,14 +368,14 @@ private fun PlaylistItemCard(
     onClick: () -> Unit,
     onRemove: () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) SurfaceDarkVariant else SurfaceDark
-        ),
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .crystalGlassCard(
+                shape = RoundedCornerShape(16.dp),
+                isSelected = isSelected,
+                onClick = onClick
+            )
     ) {
         Row(
             modifier = Modifier
@@ -367,14 +385,22 @@ private fun PlaylistItemCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(
                         if (isSelected) {
-                            Brush.linearGradient(listOf(AccentGradientStart, AccentGradientEnd))
+                            Brush.linearGradient(listOf(PrismViolet, PrismCyan))
                         } else {
-                            Brush.linearGradient(listOf(SurfaceDarkVariant, SurfaceDarkVariant))
+                            Brush.linearGradient(listOf(Color(0xFF1E2638), Color(0xFF131826)))
                         }
+                    )
+                    .border(
+                        width = 1.dp,
+                        brush = Brush.linearGradient(
+                            if (isSelected) listOf(PrismCyan, PrismMagenta)
+                            else listOf(Color(0x33FFFFFF), Color(0x11FFFFFF))
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -383,8 +409,8 @@ private fun PlaylistItemCard(
                         model = song.coverUrl,
                         contentDescription = song.title,
                         modifier = Modifier
-                            .size(46.dp)
-                            .clip(RoundedCornerShape(10.dp)),
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else if (isSelected && isPlaying) {
@@ -394,12 +420,12 @@ private fun PlaylistItemCard(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         tint = if (isSelected) Color.White else TextTertiary,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -407,7 +433,7 @@ private fun PlaylistItemCard(
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                     ),
-                    color = if (isSelected) NeonCyan else TextPrimary,
+                    color = if (isSelected) PrismCyan else TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

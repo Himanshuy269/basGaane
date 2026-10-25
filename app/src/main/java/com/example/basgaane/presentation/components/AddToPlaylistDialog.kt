@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.foundation.border
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,10 +38,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.basgaane.domain.model.Playlist
 import com.example.basgaane.domain.model.Song
+import com.example.basgaane.presentation.components.crystalGlassCard
+import com.example.basgaane.presentation.components.crystalPill
 import com.example.basgaane.presentation.theme.AccentGradientEnd
 import com.example.basgaane.presentation.theme.AccentGradientStart
 import com.example.basgaane.presentation.theme.NeonCyan
 import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.PrismCyan
+import com.example.basgaane.presentation.theme.PrismMagenta
+import com.example.basgaane.presentation.theme.PrismViolet
 import com.example.basgaane.presentation.theme.SurfaceDark
 import com.example.basgaane.presentation.theme.SurfaceDarkVariant
 import com.example.basgaane.presentation.theme.TextPrimary
@@ -62,11 +68,11 @@ fun AddToPlaylistDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = SurfaceDark,
-                    shape = RoundedCornerShape(20.dp)
+                .crystalGlassCard(
+                    shape = RoundedCornerShape(24.dp),
+                    isSelected = true
                 )
-                .padding(20.dp)
+                .padding(22.dp)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // Header
@@ -76,12 +82,19 @@ fun AddToPlaylistDialog(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(42.dp)
+                            .size(44.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(
                                 Brush.linearGradient(
-                                    listOf(AccentGradientStart, AccentGradientEnd)
+                                    listOf(PrismViolet, PrismCyan)
                                 )
+                            )
+                            .border(
+                                width = 1.dp,
+                                brush = Brush.linearGradient(
+                                    listOf(PrismCyan, PrismMagenta)
+                                ),
+                                shape = RoundedCornerShape(12.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -104,7 +117,7 @@ fun AddToPlaylistDialog(
                         Text(
                             text = song.title,
                             style = MaterialTheme.typography.bodySmall,
-                            color = NeonCyan,
+                            color = PrismCyan,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -114,43 +127,49 @@ fun AddToPlaylistDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Create New Playlist Row Button
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(SurfaceDarkVariant)
-                        .clickable {
-                            onDismiss()
-                            onCreateNewPlaylistClick()
-                        }
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .crystalPill(
+                            shape = RoundedCornerShape(14.dp),
+                            isActive = false,
+                            onClick = {
+                                onDismiss()
+                                onCreateNewPlaylistClick()
+                            }
+                        )
+                        .padding(12.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(NeonPurple.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "New Playlist",
-                            tint = NeonPurple,
-                            modifier = Modifier.size(20.dp)
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(PrismViolet.copy(alpha = 0.25f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "New Playlist",
+                                tint = PrismCyan,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Text(
+                            text = "New Playlist",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = TextPrimary
                         )
                     }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Text(
-                        text = "New Playlist",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = TextPrimary
-                    )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Playlists List
                 if (playlists.isEmpty()) {
@@ -176,58 +195,69 @@ fun AddToPlaylistDialog(
                         items(playlists, key = { it.id }) { playlist ->
                             val alreadyInPlaylist = playlist.songIds.contains(song.id)
 
-                            Row(
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (alreadyInPlaylist) NeonCyan.copy(alpha = 0.1f) else SurfaceDarkVariant)
-                                    .clickable {
-                                        onAddToPlaylist(playlist)
-                                        onDismiss()
-                                    }
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                    .crystalGlassCard(
+                                        shape = RoundedCornerShape(14.dp),
+                                        isSelected = alreadyInPlaylist,
+                                        onClick = {
+                                            onAddToPlaylist(playlist)
+                                            onDismiss()
+                                        }
+                                    )
+                                    .padding(horizontal = 14.dp, vertical = 12.dp)
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = playlist.name,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.SemiBold
-                                        ),
-                                        color = if (alreadyInPlaylist) NeonCyan else TextPrimary,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = "${playlist.songIds.size} tracks",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = TextSecondary
-                                    )
-                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = playlist.name,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = FontWeight.SemiBold
+                                            ),
+                                            color = if (alreadyInPlaylist) PrismCyan else TextPrimary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = "${playlist.songIds.size} tracks",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = TextSecondary
+                                        )
+                                    }
 
-                                if (alreadyInPlaylist) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Added",
-                                        tint = NeonCyan,
-                                        modifier = Modifier.size(20.dp)
-                                    )
+                                    if (alreadyInPlaylist) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Added",
+                                            tint = PrismCyan,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                OutlinedButton(
-                    onClick = onDismiss,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary),
-                    modifier = Modifier.fillMaxWidth()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .crystalPill(
+                            shape = RoundedCornerShape(14.dp),
+                            isActive = false,
+                            onClick = onDismiss
+                        )
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Close")
+                    Text("Close", color = TextSecondary, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

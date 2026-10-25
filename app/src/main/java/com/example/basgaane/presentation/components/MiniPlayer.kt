@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
@@ -27,7 +29,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,10 +44,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.basgaane.domain.model.Song
+import com.example.basgaane.presentation.components.crystalGlassCard
+import com.example.basgaane.presentation.components.crystalPill
 import com.example.basgaane.presentation.theme.AccentGradientEnd
 import com.example.basgaane.presentation.theme.AccentGradientStart
+import com.example.basgaane.presentation.theme.LiquidProgressGradient
 import com.example.basgaane.presentation.theme.NeonCyan
 import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.PrismCyan
+import com.example.basgaane.presentation.theme.PrismMagenta
+import com.example.basgaane.presentation.theme.PrismViolet
 import com.example.basgaane.presentation.theme.SurfaceDarkVariant
 import com.example.basgaane.presentation.theme.TextPrimary
 import com.example.basgaane.presentation.theme.TextSecondary
@@ -74,41 +81,56 @@ fun MiniPlayer(
             (progressMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
         } else 0f
 
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceDarkVariant),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
-                .clickable { onClick() }
+                .crystalGlassCard(
+                    shape = RoundedCornerShape(20.dp),
+                    isSelected = true,
+                    onClick = onClick
+                )
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Thin glowing progress bar
-                LinearProgressIndicator(
-                    progress = { progress },
+                // Liquid glowing rainbow refraction progress bar
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(3.dp),
-                    color = NeonCyan,
-                    trackColor = Color.Transparent
-                )
+                        .height(3.5.dp)
+                        .background(Color(0x22FFFFFF))
+                ) {
+                    if (progress > 0f) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = progress)
+                                .height(3.5.dp)
+                                .background(Brush.horizontalGradient(LiquidProgressGradient))
+                        )
+                    }
+                }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Album artwork thumbnail
+                    // Album artwork thumbnail with crystal squircle frame
                     Box(
                         modifier = Modifier
                             .size(46.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(12.dp))
                             .background(
                                 Brush.linearGradient(
-                                    listOf(AccentGradientStart, AccentGradientEnd)
+                                    listOf(PrismViolet, PrismCyan)
                                 )
+                            )
+                            .border(
+                                width = 1.dp,
+                                brush = Brush.linearGradient(
+                                    listOf(PrismCyan, PrismMagenta)
+                                ),
+                                shape = RoundedCornerShape(12.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -118,7 +140,7 @@ fun MiniPlayer(
                                 contentDescription = currentSong.title,
                                 modifier = Modifier
                                     .size(46.dp)
-                                    .clip(RoundedCornerShape(10.dp)),
+                                    .clip(RoundedCornerShape(12.dp)),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
@@ -127,7 +149,7 @@ fun MiniPlayer(
                                 contentDescription = currentSong.title,
                                 modifier = Modifier
                                     .size(46.dp)
-                                    .clip(RoundedCornerShape(10.dp)),
+                                    .clip(RoundedCornerShape(12.dp)),
                                 contentScale = ContentScale.Crop
                             )
                         }
@@ -158,6 +180,8 @@ fun MiniPlayer(
                             }
                         }
 
+                        Spacer(modifier = Modifier.height(2.dp))
+
                         Text(
                             text = currentSong.artist,
                             style = MaterialTheme.typography.bodySmall.copy(
@@ -171,21 +195,26 @@ fun MiniPlayer(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // Play/Pause Button
-                    IconButton(
-                        onClick = onPlayPause,
+                    // Play/Pause Button in Crystal Pill
+                    Box(
                         modifier = Modifier
                             .size(38.dp)
-                            .clip(RoundedCornerShape(19.dp))
-                            .background(NeonPurple.copy(alpha = 0.2f))
+                            .crystalPill(
+                                shape = CircleShape,
+                                isActive = isPlaying,
+                                onClick = onPlayPause
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = NeonCyan,
-                            modifier = Modifier.size(22.dp)
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
+
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     // Next Button
                     IconButton(

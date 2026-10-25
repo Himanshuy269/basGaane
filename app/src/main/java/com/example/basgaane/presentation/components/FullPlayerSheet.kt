@@ -70,6 +70,9 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.example.basgaane.domain.model.Song
+import com.example.basgaane.presentation.components.LiquidCrystalBackground
+import com.example.basgaane.presentation.components.crystalGlassCard
+import com.example.basgaane.presentation.components.crystalPill
 import com.example.basgaane.presentation.theme.AccentGradientEnd
 import com.example.basgaane.presentation.theme.AccentGradientStart
 import com.example.basgaane.presentation.theme.BackgroundDark
@@ -77,6 +80,10 @@ import com.example.basgaane.presentation.theme.NeonCyan
 import com.example.basgaane.presentation.theme.NeonPink
 import com.example.basgaane.presentation.theme.NeonPurple
 import com.example.basgaane.presentation.theme.PlayerTrack
+import com.example.basgaane.presentation.theme.PrismBlue
+import com.example.basgaane.presentation.theme.PrismCyan
+import com.example.basgaane.presentation.theme.PrismMagenta
+import com.example.basgaane.presentation.theme.PrismViolet
 import com.example.basgaane.presentation.theme.SurfaceDark
 import com.example.basgaane.presentation.theme.TextPrimary
 import com.example.basgaane.presentation.theme.TextSecondary
@@ -134,270 +141,318 @@ fun FullPlayerSheet(
             containerColor = BackgroundDark,
             contentWindowInsets = WindowInsets.safeDrawing
         ) { sheetPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(sheetPadding)
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-            // Header Bar
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Collapse",
-                        tint = TextPrimary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-
-                Text(
-                    text = "NOW PLAYING",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        letterSpacing = 2.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = NeonCyan
-                )
-
-                Spacer(modifier = Modifier.size(32.dp))
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Vinyl / Album Art Disc
-            Box(
-                modifier = Modifier
-                    .size(260.dp)
-                    .shadow(16.dp, CircleShape)
-                    .clip(CircleShape)
-                    .background(SurfaceDark)
-                    .border(
-                        width = 3.dp,
-                        brush = Brush.sweepGradient(
-                            listOf(NeonPurple, NeonCyan, NeonPink, NeonPurple)
-                        ),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
+            LiquidCrystalBackground(modifier = Modifier.fillMaxSize()) {
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(12.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF14141E))
-                        .rotate(if (isPlaying) rotation else 0f),
-                    contentAlignment = Alignment.Center
+                        .padding(sheetPadding)
+                        .padding(horizontal = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (!song.coverUrl.isNullOrEmpty()) {
-                        AsyncImage(
-                            model = song.coverUrl,
-                            contentDescription = song.title,
-                            modifier = Modifier
-                                .size(160.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(id = R.drawable.app_logo),
-                            contentDescription = song.title,
-                            modifier = Modifier
-                                .size(160.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(BackgroundDark)
-                            .border(2.dp, Color.Gray, CircleShape)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = song.title,
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = TextPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = song.artist,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (song.isLocal) SurfaceDark else NeonPurple.copy(alpha = 0.2f))
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = if (song.isLocal) Icons.Default.PhoneAndroid else Icons.Default.CloudDone,
-                            contentDescription = null,
-                            tint = if (song.isLocal) TextSecondary else NeonCyan,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = if (song.isLocal) "Local" else "Shared",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = if (song.isLocal) TextSecondary else NeonCyan
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            val maxDuration = durationMs.coerceAtLeast(1L).toFloat()
-            Slider(
-                value = currentPosition.toFloat().coerceIn(0f, maxDuration),
-                onValueChange = {
-                    isDraggingSlider = true
-                    sliderPosition = it
-                },
-                onValueChangeFinished = {
-                    isDraggingSlider = false
-                    onSeek(sliderPosition.toLong())
-                },
-                valueRange = 0f..maxDuration,
-                colors = SliderDefaults.colors(
-                    thumbColor = NeonCyan,
-                    activeTrackColor = NeonCyan,
-                    inactiveTrackColor = PlayerTrack
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = formatMs(currentPosition),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = TextTertiary
-                )
-                Text(
-                    text = formatMs(durationMs),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = TextTertiary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onToggleShuffle) {
-                    Icon(
-                        imageVector = Icons.Default.Shuffle,
-                        contentDescription = "Shuffle",
-                        tint = if (isShuffle) NeonCyan else TextTertiary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = onSkipPrevious,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = "Previous",
-                        tint = TextPrimary,
-                        modifier = Modifier.size(36.dp)
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(68.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(AccentGradientStart, AccentGradientEnd)
-                            )
-                        )
-                        .border(2.dp, Color.White.copy(alpha = 0.4f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(
-                        onClick = onPlayPause,
-                        modifier = Modifier.size(68.dp)
+                    // Header Bar
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = Color.White,
-                            modifier = Modifier.size(38.dp)
+                        IconButton(onClick = onDismiss) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Collapse",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+
+                        Text(
+                            text = "NOW PLAYING",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                letterSpacing = 2.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = PrismCyan
+                        )
+
+                        Spacer(modifier = Modifier.size(32.dp))
+                    }
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    // Vinyl / Album Art Disc with Chromatic Liquid Aura
+                    Box(
+                        modifier = Modifier.size(280.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Ambient chromatic fluid glow
+                        Box(
+                            modifier = Modifier
+                                .size(270.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            PrismCyan.copy(alpha = 0.35f),
+                                            PrismViolet.copy(alpha = 0.25f),
+                                            Color.Transparent
+                                        )
+                                    )
+                                )
+                        )
+
+                        // Prismatic Vinyl Disc
+                        Box(
+                            modifier = Modifier
+                                .size(250.dp)
+                                .shadow(20.dp, CircleShape)
+                                .clip(CircleShape)
+                                .background(Color(0xFF0F121C))
+                                .border(
+                                    width = 3.dp,
+                                    brush = Brush.sweepGradient(
+                                        listOf(PrismCyan, PrismBlue, PrismViolet, PrismMagenta, PrismCyan)
+                                    ),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF131724))
+                                    .rotate(if (isPlaying) rotation else 0f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (!song.coverUrl.isNullOrEmpty()) {
+                                    AsyncImage(
+                                        model = song.coverUrl,
+                                        contentDescription = song.title,
+                                        modifier = Modifier
+                                            .size(150.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.app_logo),
+                                        contentDescription = song.title,
+                                        modifier = Modifier
+                                            .size(150.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+                                // Center spindle
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF0B0E17))
+                                        .border(2.dp, PrismCyan.copy(alpha = 0.6f), CircleShape)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text(
+                        text = song.title,
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = TextPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = song.artist,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = TextSecondary
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .crystalPill(
+                                    shape = RoundedCornerShape(8.dp),
+                                    isActive = !song.isLocal
+                                )
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (song.isLocal) Icons.Default.PhoneAndroid else Icons.Default.CloudDone,
+                                    contentDescription = null,
+                                    tint = if (song.isLocal) TextSecondary else PrismCyan,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (song.isLocal) "Local" else "Shared",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    color = if (song.isLocal) TextSecondary else PrismCyan
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    val maxDuration = durationMs.coerceAtLeast(1L).toFloat()
+                    Slider(
+                        value = currentPosition.toFloat().coerceIn(0f, maxDuration),
+                        onValueChange = {
+                            isDraggingSlider = true
+                            sliderPosition = it
+                        },
+                        onValueChangeFinished = {
+                            isDraggingSlider = false
+                            onSeek(sliderPosition.toLong())
+                        },
+                        valueRange = 0f..maxDuration,
+                        colors = SliderDefaults.colors(
+                            thumbColor = PrismCyan,
+                            activeTrackColor = PrismCyan,
+                            inactiveTrackColor = Color(0x33FFFFFF)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = formatMs(currentPosition),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = TextTertiary
+                        )
+                        Text(
+                            text = formatMs(durationMs),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = TextTertiary
                         )
                     }
-                }
 
-                IconButton(
-                    onClick = onSkipNext,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Next",
-                        tint = TextPrimary,
-                        modifier = Modifier.size(36.dp)
-                    )
-                }
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                IconButton(onClick = onToggleRepeat) {
-                    val repeatIcon = if (repeatMode == Player.REPEAT_MODE_ONE) {
-                        Icons.Default.RepeatOne
-                    } else {
-                        Icons.Default.Repeat
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .crystalPill(shape = CircleShape, isActive = isShuffle, onClick = onToggleShuffle),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Shuffle,
+                                contentDescription = "Shuffle",
+                                tint = if (isShuffle) Color.White else TextTertiary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .crystalPill(shape = CircleShape, isActive = false, onClick = onSkipPrevious),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SkipPrevious,
+                                contentDescription = "Previous",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        // Play / Pause glowing center button
+                        Box(
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(PrismViolet, PrismCyan)
+                                    )
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    brush = Brush.linearGradient(
+                                        listOf(PrismCyan, PrismMagenta)
+                                    ),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            IconButton(
+                                onClick = onPlayPause,
+                                modifier = Modifier.size(70.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = if (isPlaying) "Pause" else "Play",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(38.dp)
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .crystalPill(shape = CircleShape, isActive = false, onClick = onSkipNext),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SkipNext,
+                                contentDescription = "Next",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        val repeatIcon = if (repeatMode == Player.REPEAT_MODE_ONE) {
+                            Icons.Default.RepeatOne
+                        } else {
+                            Icons.Default.Repeat
+                        }
+                        val isRepeatActive = repeatMode != Player.REPEAT_MODE_OFF
+
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .crystalPill(shape = CircleShape, isActive = isRepeatActive, onClick = onToggleRepeat),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = repeatIcon,
+                                contentDescription = "Repeat",
+                                tint = if (isRepeatActive) Color.White else TextTertiary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
-                    val isRepeatActive = repeatMode != Player.REPEAT_MODE_OFF
 
-                    Icon(
-                        imageVector = repeatIcon,
-                        contentDescription = "Repeat",
-                        tint = if (isRepeatActive) NeonCyan else TextTertiary,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
-    }
 }
 }
 

@@ -47,14 +47,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.border
 import androidx.compose.ui.unit.dp
 import com.example.basgaane.R
 import com.example.basgaane.domain.model.Playlist
+import com.example.basgaane.presentation.components.crystalGlassCard
+import com.example.basgaane.presentation.components.crystalPill
 import com.example.basgaane.presentation.theme.AccentGradientEnd
 import com.example.basgaane.presentation.theme.AccentGradientStart
 import com.example.basgaane.presentation.theme.NeonCyan
 import com.example.basgaane.presentation.theme.NeonPink
 import com.example.basgaane.presentation.theme.NeonPurple
+import com.example.basgaane.presentation.theme.PrismCyan
+import com.example.basgaane.presentation.theme.PrismMagenta
+import com.example.basgaane.presentation.theme.PrismViolet
 import com.example.basgaane.presentation.theme.SurfaceDark
 import com.example.basgaane.presentation.theme.SurfaceDarkVariant
 import com.example.basgaane.presentation.theme.TextPrimary
@@ -91,22 +97,25 @@ fun PlaylistsScreen(
                 Text(
                     text = "Personalized collections for every vibe",
                     style = MaterialTheme.typography.labelMedium,
-                    color = NeonCyan
+                    color = PrismCyan
                 )
             }
 
-            Button(
-                onClick = onCreatePlaylistClick,
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = NeonPurple,
-                    contentColor = Color.White
-                ),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+            Box(
+                modifier = Modifier
+                    .crystalPill(
+                        shape = RoundedCornerShape(16.dp),
+                        isActive = true,
+                        onClick = onCreatePlaylistClick
+                    )
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("New", fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("New", fontWeight = FontWeight.Bold, color = Color.White)
+                }
             }
         }
 
@@ -174,12 +183,13 @@ private fun PlaylistCard(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .crystalGlassCard(
+                shape = RoundedCornerShape(18.dp),
+                onClick = onClick
+            )
     ) {
         Row(
             modifier = Modifier
@@ -193,8 +203,15 @@ private fun PlaylistCard(
                     .clip(RoundedCornerShape(14.dp))
                     .background(
                         Brush.linearGradient(
-                            listOf(AccentGradientStart, AccentGradientEnd)
+                            listOf(PrismViolet, PrismCyan)
                         )
+                    )
+                    .border(
+                        width = 1.dp,
+                        brush = Brush.linearGradient(
+                            listOf(PrismCyan, PrismMagenta)
+                        ),
+                        shape = RoundedCornerShape(14.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -233,7 +250,7 @@ private fun PlaylistCard(
                 Text(
                     text = "${playlist.songIds.size} tracks",
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                    color = NeonCyan
+                    color = PrismCyan
                 )
             }
 
