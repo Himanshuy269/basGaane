@@ -32,7 +32,8 @@ class LocalSongDataSource(context: Context) {
                             coverUrl = obj.optString("coverUrl").takeIf { it.isNotEmpty() },
                             durationMs = obj.optLong("durationMs", 0L),
                             isLocal = obj.optBoolean("isLocal", true),
-                            addedAt = obj.optLong("addedAt", System.currentTimeMillis())
+                            addedAt = obj.optLong("addedAt", System.currentTimeMillis()),
+                            addedBy = obj.optString("addedBy", "Friend").takeIf { it.isNotBlank() } ?: "Friend"
                         )
                     )
                 }
@@ -69,6 +70,7 @@ class LocalSongDataSource(context: Context) {
                 put("durationMs", song.durationMs)
                 put("isLocal", song.isLocal)
                 put("addedAt", song.addedAt)
+                put("addedBy", song.addedBy)
             }
             array.put(obj)
         }
@@ -89,7 +91,8 @@ class LocalSongDataSource(context: Context) {
                 audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
                 coverUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80",
                 durationMs = 372000L,
-                isLocal = false
+                isLocal = false,
+                addedBy = "BasGaane"
             ),
             Song(
                 id = "sample-2",
@@ -98,7 +101,8 @@ class LocalSongDataSource(context: Context) {
                 audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
                 coverUrl = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80",
                 durationMs = 423000L,
-                isLocal = false
+                isLocal = false,
+                addedBy = "BasGaane"
             ),
             Song(
                 id = "sample-3",
@@ -107,7 +111,8 @@ class LocalSongDataSource(context: Context) {
                 audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
                 coverUrl = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80",
                 durationMs = 340000L,
-                isLocal = false
+                isLocal = false,
+                addedBy = "BasGaane"
             ),
             Song(
                 id = "sample-4",
@@ -116,7 +121,8 @@ class LocalSongDataSource(context: Context) {
                 audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
                 coverUrl = "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&auto=format&fit=crop&q=80",
                 durationMs = 302000L,
-                isLocal = false
+                isLocal = false,
+                addedBy = "BasGaane"
             )
         )
     }

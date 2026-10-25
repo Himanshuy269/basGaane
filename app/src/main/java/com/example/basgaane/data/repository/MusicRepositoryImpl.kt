@@ -81,11 +81,12 @@ class MusicRepositoryImpl(
         artist: String,
         audioUri: Uri,
         durationMs: Long,
-        coverUrl: String?
+        coverUrl: String?,
+        addedBy: String
     ): Result<Song> = withContext(Dispatchers.IO) {
         val songId = UUID.randomUUID().toString()
 
-        Log.d(TAG, "Starting uploadAndAddSong for '$title' ($songId)...")
+        Log.d(TAG, "Starting uploadAndAddSong for '$title' ($songId) added by '$addedBy'...")
         val uploadResult = remoteDataSource.uploadAudio(audioUri, songId)
 
         if (uploadResult.isSuccess) {
@@ -98,7 +99,8 @@ class MusicRepositoryImpl(
                 coverUrl = coverUrl,
                 durationMs = durationMs,
                 isLocal = false,
-                addedAt = System.currentTimeMillis()
+                addedAt = System.currentTimeMillis(),
+                addedBy = addedBy
             )
 
             // Save to Firestore so friend receives it via real-time snapshot
@@ -129,7 +131,8 @@ class MusicRepositoryImpl(
                 coverUrl = coverUrl,
                 durationMs = durationMs,
                 isLocal = true,
-                addedAt = System.currentTimeMillis()
+                addedAt = System.currentTimeMillis(),
+                addedBy = addedBy
             )
             localDataSource.saveSong(localSong)
             combineAndEmit()

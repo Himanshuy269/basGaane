@@ -14,5 +14,6 @@ data class Song(
     val coverUrl: String? = null,
     val durationMs: Long = 0L,
     val isLocal: Boolean = false,
-    val addedAt: Long = System.currentTimeMillis()
+    val addedAt: Long = System.currentTimeMillis(),
+    val addedBy: String = "Friend"
 )

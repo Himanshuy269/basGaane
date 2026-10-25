@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -120,6 +121,8 @@ fun HomeScreen(
     onMiniPlayerClick: () -> Unit,
     onAddMusicClick: () -> Unit,
     onDeleteSong: (Song) -> Unit,
+    userName: String = "Friend",
+    onOpenEditProfileDialog: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     modifier: Modifier = Modifier
 ) {
@@ -237,17 +240,48 @@ fun HomeScreen(
                             }
                         }
 
-                        // Track count chip
-                        Box(
-                            modifier = Modifier
-                                .crystalPill(shape = RoundedCornerShape(14.dp))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text(
-                                text = "${songs.size} tracks",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                color = TextSecondary
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // User Profile Pill Button
+                            Box(
+                                modifier = Modifier
+                                    .crystalPill(
+                                        shape = RoundedCornerShape(14.dp),
+                                        isActive = true,
+                                        onClick = onOpenEditProfileDialog
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Edit Profile",
+                                        tint = PrismCyan,
+                                        modifier = Modifier.size(13.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = userName,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = Color.White,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // Track count chip
+                            Box(
+                                modifier = Modifier
+                                    .crystalPill(shape = RoundedCornerShape(14.dp))
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "${songs.size} tracks",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                    color = TextSecondary
+                                )
+                            }
                         }
                     }
 
@@ -532,6 +566,34 @@ fun SongItemCard(
                             color = if (song.isLocal) TextTertiary else PrismCyan
                         )
                     }
+                }
+
+                Spacer(modifier = Modifier.height(3.dp))
+
+                // Friend attribution badge
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .crystalPill(
+                            shape = RoundedCornerShape(6.dp),
+                            isActive = false
+                        )
+                        .padding(horizontal = 6.dp, vertical = 1.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = PrismMagenta,
+                        modifier = Modifier.size(9.dp)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = "Added by ${song.addedBy}",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium),
+                        color = TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 

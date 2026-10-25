@@ -85,6 +85,7 @@ class FirebaseSongDataSource(
                             val coverUrl = doc.getString("coverUrl")
                             val durationMs = doc.getLong("durationMs") ?: 0L
                             val addedAt = doc.getLong("addedAt") ?: System.currentTimeMillis()
+                            val addedBy = doc.getString("addedBy")?.takeIf { it.isNotBlank() } ?: "Friend"
 
                             Song(
                                 id = id,
@@ -94,7 +95,8 @@ class FirebaseSongDataSource(
                                 coverUrl = coverUrl,
                                 durationMs = durationMs,
                                 isLocal = false,
-                                addedAt = addedAt
+                                addedAt = addedAt,
+                                addedBy = addedBy
                             )
                         }
                         trySend(songs)
@@ -190,7 +192,8 @@ class FirebaseSongDataSource(
                 "coverUrl" to (song.coverUrl ?: ""),
                 "durationMs" to song.durationMs,
                 "isLocal" to false,
-                "addedAt" to song.addedAt
+                "addedAt" to song.addedAt,
+                "addedBy" to song.addedBy
             )
             Tasks.await(firestore.collection(COLLECTION_SONGS).document(song.id).set(songData))
             Log.d(TAG, "Song '${song.title}' saved to Firestore successfully.")

@@ -15,17 +15,20 @@ class AddSongUseCase(
         artist: String,
         audioUri: Uri,
         durationMs: Long,
-        coverUrl: String? = null
+        coverUrl: String? = null,
+        addedBy: String = "Friend"
     ): Result<Song> {
         val cleanTitle = title.trim().ifEmpty { "New Track" }
         val cleanArtist = artist.trim().ifEmpty { "My Music" }
+        val cleanAddedBy = addedBy.trim().ifEmpty { "Friend" }
 
         return repository.uploadAndAddSong(
             title = cleanTitle,
             artist = cleanArtist,
             audioUri = audioUri,
             durationMs = durationMs,
-            coverUrl = coverUrl
+            coverUrl = coverUrl,
+            addedBy = cleanAddedBy
         )
     }
 }

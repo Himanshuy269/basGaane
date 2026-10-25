@@ -1,6 +1,7 @@
 package com.example.basgaane.presentation.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -77,6 +78,33 @@ class MusicViewModel(
     )
 
     val playerUiState: StateFlow<PlayerUiState> = playerController.uiState
+
+    // User Profile / Friend Attribution State
+    private val profilePrefs = application.getSharedPreferences("user_profile_prefs", Context.MODE_PRIVATE)
+    private val defaultInitialName = android.os.Build.MODEL.takeIf { !it.isNullOrBlank() } ?: "Friend"
+    private val _userName = MutableStateFlow(
+        profilePrefs.getString("key_user_name", null)?.takeIf { it.isNotBlank() } ?: defaultInitialName
+    )
+    val userName: StateFlow<String> = _userName.asStateFlow()
+
+    private val _isEditProfileDialogOpen = MutableStateFlow(false)
+    val isEditProfileDialogOpen: StateFlow<Boolean> = _isEditProfileDialogOpen.asStateFlow()
+
+    fun openEditProfileDialog() {
+        _isEditProfileDialogOpen.value = true
+    }
+
+    fun closeEditProfileDialog() {
+        _isEditProfileDialogOpen.value = false
+    }
+
+    fun setUserName(name: String) {
+        val cleanName = name.trim().ifEmpty { defaultInitialName }
+        profilePrefs.edit().putString("key_user_name", cleanName).apply()
+        _userName.value = cleanName
+        _userMessage.value = "✓ Profile name updated to '$cleanName'"
+        _isEditProfileDialogOpen.value = false
+    }
 
     // Tab Navigation State
     private val _selectedTab = MutableStateFlow(HomeTab.HOME)
@@ -290,7 +318,8 @@ class MusicViewModel(
         title: String,
         artist: String,
         audioUri: Uri,
-        coverUrl: String? = null
+        coverUrl: String? = null,
+        addedBy: String? = null
     ) {
         viewModelScope.launch {
             _isUploading.value = true
@@ -308,17 +337,25 @@ class MusicViewModel(
 
                 val finalTitle = title.trim().ifEmpty { "New Track" }
                 val finalArtist = artist.trim().ifEmpty { "My Music" }
+                val finalAddedBy = (addedBy ?: _userName.value).trim().ifEmpty { _userName.value }
+
+                // Save uploader name as profile name if changed
+                if (finalAddedBy != _userName.value) {
+                    profilePrefs.edit().putString("key_user_name", finalAddedBy).apply()
+                    _userName.value = finalAddedBy
+                }
 
                 val result = addSongUseCase(
                     title = finalTitle,
                     artist = finalArtist,
                     audioUri = audioUri,
                     durationMs = durationMs,
-                    coverUrl = coverUrl
+                    coverUrl = coverUrl,
+                    addedBy = finalAddedBy
                 )
 
                 if (result.isSuccess) {
-                    _userMessage.value = "✓ Song '$finalTitle' uploaded and synced with friends!"
+                    _userMessage.value = "✓ Song '$finalTitle' by $finalAddedBy synced with friends!"
                 } else {
                     val error = result.exceptionOrNull()?.localizedMessage ?: "Unknown error"
                     _userMessage.value = "⚠️ Cloud sync error: $error"

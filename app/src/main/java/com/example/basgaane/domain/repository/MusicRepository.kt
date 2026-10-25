@@ -15,7 +15,8 @@ interface MusicRepository {
         artist: String,
         audioUri: Uri,
         durationMs: Long,
-        coverUrl: String? = null
+        coverUrl: String? = null,
+        addedBy: String = "Friend"
     ): Result<Song>
     suspend fun removeSong(songId: String): Result<Unit>
     fun refreshSongs()

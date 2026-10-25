@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.basgaane.presentation.components.AddMusicDialog
 import com.example.basgaane.presentation.components.AddToPlaylistDialog
 import com.example.basgaane.presentation.components.CreatePlaylistDialog
+import com.example.basgaane.presentation.components.EditProfileDialog
 import com.example.basgaane.presentation.components.FullPlayerSheet
 import com.example.basgaane.presentation.screens.HomeScreen
 import com.example.basgaane.presentation.theme.BackgroundDark
@@ -82,6 +83,8 @@ fun BasGaaneApp(
     val isFullPlayerVisible by viewModel.isFullPlayerVisible.collectAsState()
     val isUploading by viewModel.isUploading.collectAsState()
     val userMessage by viewModel.userMessage.collectAsState()
+    val userName by viewModel.userName.collectAsState()
+    val isEditProfileDialogOpen by viewModel.isEditProfileDialogOpen.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -124,6 +127,8 @@ fun BasGaaneApp(
         onMiniPlayerClick = viewModel::showFullPlayer,
         onAddMusicClick = viewModel::openAddMusicDialog,
         onDeleteSong = viewModel::deleteSong,
+        userName = userName,
+        onOpenEditProfileDialog = viewModel::openEditProfileDialog,
         snackbarHostState = snackbarHostState
     )
 
@@ -131,14 +136,24 @@ fun BasGaaneApp(
     AddMusicDialog(
         isOpen = isAddDialogOpen,
         isUploading = isUploading,
+        currentUserName = userName,
         onDismiss = viewModel::closeAddMusicDialog,
-        onAddTrack = { title, artist, uri ->
+        onAddTrack = { title, artist, uri, addedBy ->
             viewModel.addTrack(
                 title = title,
                 artist = artist,
-                audioUri = uri
+                audioUri = uri,
+                addedBy = addedBy
             )
         }
+    )
+
+    // Edit Profile Name Dialog Modal
+    EditProfileDialog(
+        isOpen = isEditProfileDialogOpen,
+        currentName = userName,
+        onDismiss = viewModel::closeEditProfileDialog,
+        onSaveName = viewModel::setUserName
     )
 
     // Create Playlist Dialog Modal
