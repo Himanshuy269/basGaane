@@ -10,11 +10,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -70,6 +72,15 @@ fun BasGaaneApp(
     val isAddDialogOpen by viewModel.isAddMusicDialogOpen.collectAsState()
     val isFullPlayerVisible by viewModel.isFullPlayerVisible.collectAsState()
     val isUploading by viewModel.isUploading.collectAsState()
+    val uploadStatus by viewModel.uploadStatusMessage.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uploadStatus) {
+        uploadStatus?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearUploadStatusMessage()
+        }
+    }
 
     HomeScreen(
         songs = songs,
@@ -84,7 +95,8 @@ fun BasGaaneApp(
         onSkipNext = viewModel::skipNext,
         onMiniPlayerClick = viewModel::showFullPlayer,
         onAddMusicClick = viewModel::openAddMusicDialog,
-        onDeleteSong = viewModel::deleteSong
+        onDeleteSong = viewModel::deleteSong,
+        snackbarHostState = snackbarHostState
     )
 
     // Add Music Dialog Modal

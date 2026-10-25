@@ -2,6 +2,7 @@ package com.example.basgaane.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.example.basgaane.data.datasource.local.LocalSongDataSource
 import com.example.basgaane.data.datasource.remote.FirebaseSongDataSource
 import com.example.basgaane.domain.model.Song
@@ -22,7 +23,7 @@ import java.util.UUID
 class MusicRepositoryImpl(
     context: Context,
     private val localDataSource: LocalSongDataSource = LocalSongDataSource(context),
-    private val remoteDataSource: FirebaseSongDataSource = FirebaseSongDataSource(),
+    private val remoteDataSource: FirebaseSongDataSource = FirebaseSongDataSource(context),
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) : MusicRepository {
 
@@ -36,6 +37,7 @@ class MusicRepositoryImpl(
         // 2. Observe remote Firestore updates in real time
         coroutineScope.launch {
             remoteDataSource.observeRemoteSongs().collect { remoteList ->
+                Log.d(TAG, "Syncing remote songs: ${remoteList.size} tracks found on cloud.")
                 cachedRemoteSongs = remoteList
                 combineAndEmit()
             }
@@ -52,7 +54,7 @@ class MusicRepositoryImpl(
         val localList = localDataSource.getLocalSongs()
         val combinedMap = linkedMapOf<String, Song>()
 
-        // 1. Add cloud tracks (synced across friends)
+        // 1. Add cloud tracks (synced in real time across friends' devices)
         for (song in cachedRemoteSongs) {
             combinedMap[song.id] = song
         }
@@ -64,7 +66,7 @@ class MusicRepositoryImpl(
             }
         }
 
-        // 3. Populate default sample tracks if catalog is empty
+        // 3. Fallback demo tracks if user has zero songs anywhere
         if (combinedMap.isEmpty()) {
             for (sample in LocalSongDataSource.sampleStarterSongs) {
                 combinedMap[sample.id] = sample
@@ -83,8 +85,9 @@ class MusicRepositoryImpl(
     ): Result<Song> = withContext(Dispatchers.IO) {
         val songId = UUID.randomUUID().toString()
 
-        // Try uploading to Firebase first
+        Log.d(TAG, "Starting uploadAndAddSong for '$title' ($songId)...")
         val uploadResult = remoteDataSource.uploadAudio(audioUri, songId)
+
         if (uploadResult.isSuccess) {
             val audioUrl = uploadResult.getOrThrow()
             val cloudSong = Song(
@@ -97,12 +100,27 @@ class MusicRepositoryImpl(
                 isLocal = false,
                 addedAt = System.currentTimeMillis()
             )
-            remoteDataSource.saveSongDocument(cloudSong)
-            localDataSource.saveSong(cloudSong)
-            combineAndEmit()
-            Result.success(cloudSong)
+
+            // Save to Firestore so friend receives it via real-time snapshot
+            val firestoreResult = remoteDataSource.saveSongDocument(cloudSong)
+            if (firestoreResult.isSuccess) {
+                // Also cache locally with the cloud download URL
+                localDataSource.saveSong(cloudSong)
+                combineAndEmit()
+                Log.d(TAG, "Song successfully uploaded and published to Firestore!")
+                Result.success(cloudSong)
+            } else {
+                val err = firestoreResult.exceptionOrNull()
+                Log.e(TAG, "Audio uploaded but Firestore metadata write failed: ${err?.message}")
+                localDataSource.saveSong(cloudSong)
+                combineAndEmit()
+                Result.failure(Exception("Audio uploaded, but metadata write failed: ${err?.localizedMessage}. Check Firestore security rules!"))
+            }
         } else {
-            // Fall back to local storage if offline or rules block upload
+            val err = uploadResult.exceptionOrNull()
+            Log.e(TAG, "Cloud storage upload failed: ${err?.message}", err)
+
+            // Save locally for offline listening on this phone
             val localSong = Song(
                 id = songId,
                 title = title,
@@ -115,7 +133,9 @@ class MusicRepositoryImpl(
             )
             localDataSource.saveSong(localSong)
             combineAndEmit()
-            Result.success(localSong)
+
+            // Return failure so the user knows it could not be synced to friends
+            Result.failure(Exception("Saved locally, but cloud sync to friends failed: ${err?.localizedMessage ?: "Check Firebase Storage rules and internet"}"))
         }
     }
 
@@ -130,5 +150,9 @@ class MusicRepositoryImpl(
         remoteDataSource.deleteSongDocument(songId)
         combineAndEmit()
         Result.success(Unit)
+    }
+
+    companion object {
+        private const val TAG = "MusicRepositoryImpl"
     }
 }

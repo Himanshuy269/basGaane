@@ -37,6 +37,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -85,10 +88,22 @@ fun HomeScreen(
     onMiniPlayerClick: () -> Unit,
     onAddMusicClick: () -> Unit,
     onDeleteSong: (Song) -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         containerColor = BackgroundDark,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = SurfaceDarkVariant,
+                    contentColor = TextPrimary,
+                    actionColor = NeonCyan,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddMusicClick,
@@ -364,12 +379,26 @@ fun SongItemCard(
 
                     Spacer(modifier = Modifier.width(6.dp))
 
-                    Icon(
-                        imageVector = if (song.isLocal) Icons.Default.PhoneAndroid else Icons.Default.CloudDone,
-                        contentDescription = null,
-                        tint = if (song.isLocal) TextTertiary else NeonPurple,
-                        modifier = Modifier.size(12.dp)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (song.isLocal) SurfaceDark else NeonPurple.copy(alpha = 0.15f))
+                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (song.isLocal) Icons.Default.PhoneAndroid else Icons.Default.CloudDone,
+                            contentDescription = null,
+                            tint = if (song.isLocal) TextTertiary else NeonCyan,
+                            modifier = Modifier.size(10.dp)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text(
+                            text = if (song.isLocal) "Device" else "Cloud",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = if (song.isLocal) TextTertiary else NeonCyan
+                        )
+                    }
                 }
             }
 

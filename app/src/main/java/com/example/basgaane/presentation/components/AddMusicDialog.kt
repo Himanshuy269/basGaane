@@ -265,6 +265,30 @@ fun AddMusicDialog(
                     )
                 }
 
+                if (isUploading) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(SurfaceDarkVariant)
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = NeonCyan,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Uploading to cloud & syncing with friends...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = NeonCyan
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
@@ -309,7 +333,7 @@ fun AddMusicDialog(
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Adding...")
+                            Text("Uploading...")
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Audiotrack,

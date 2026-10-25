@@ -180,17 +180,22 @@ class MusicViewModel(
                 )
 
                 if (result.isSuccess) {
-                    _uploadStatusMessage.value = "Song '$finalTitle' added and synced!"
+                    _uploadStatusMessage.value = "✓ Song '$finalTitle' uploaded and synced with friends!"
                 } else {
-                    _uploadStatusMessage.value = "Song saved locally."
+                    val error = result.exceptionOrNull()?.localizedMessage ?: "Unknown error"
+                    _uploadStatusMessage.value = "⚠️ Cloud sync error: $error"
                 }
                 _isAddMusicDialogOpen.value = false
             } catch (e: Exception) {
-                _uploadStatusMessage.value = "Error adding song: ${e.localizedMessage}"
+                _uploadStatusMessage.value = "⚠️ Error adding song: ${e.localizedMessage}"
             } finally {
                 _isUploading.value = false
             }
         }
+    }
+
+    fun clearUploadStatusMessage() {
+        _uploadStatusMessage.value = null
     }
 
     override fun onCleared() {

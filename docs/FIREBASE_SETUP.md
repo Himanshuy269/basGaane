@@ -32,44 +32,62 @@ To enable this cross-device sharing, you can connect a free Firebase project.
 
 ---
 
-## Step 3: Enable Firebase Storage & Firestore
+## Step 3: Enable Anonymous Authentication
 
-1. **Cloud Firestore**:
-   - In the Firebase sidebar, go to **Build > Firestore Database**.
-   - Click **Create Database**, select a region close to you.
-   - Choose **Start in test mode** (allows read/write during development) or configure security rules.
+In order for you and your friends to securely upload and stream audio without requiring a manual login screen:
+1. In the Firebase sidebar, go to **Build > Authentication**.
+2. Click **Get Started** (if not already enabled).
+3. Under the **Sign-in method** tab, select **Anonymous**.
+4. Enable the toggle and click **Save**.
 
-2. **Cloud Storage**:
-   - In the Firebase sidebar, go to **Build > Storage**.
-   - Click **Get Started**, choose **Start in test mode**, and finish setup.
-   - This bucket is where MP3/audio files uploaded via the app will be stored.
+The app automatically signs in anonymously in the background so both you and your friends can upload and stream music seamlessly!
 
 ---
 
-## Step 4: Enable the Google Services Plugin in Gradle
+## Step 4: Configure Security Rules (Firestore & Storage)
 
-Once you have placed `google-services.json` in `app/`:
+### 1. Cloud Firestore Rules
+In the Firebase Console, go to **Firestore Database > Rules** tab, paste the following rules, and click **Publish**:
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
 
-1. In `app/build.gradle.kts`, apply the Google services plugin:
-   ```kotlin
-   plugins {
-       alias(libs.plugins.android.application)
-       alias(libs.plugins.kotlin.compose)
-       id("com.google.gms.google-services")
-   }
-   ```
-2. Add Firebase libraries to your dependencies:
-   ```kotlin
-   implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-   implementation("com.google.firebase:firebase-firestore-ktx")
-   implementation("com.google.firebase:firebase-storage-ktx")
-   ```
+### 2. Cloud Storage Rules
+In the Firebase Console, go to **Storage > Rules** tab, paste the following rules, and click **Publish**:
+```javascript
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+> [!NOTE]
+> `request.auth != null` allows any user using your app (authenticated anonymously) to upload songs and listen to shared songs, while keeping your database protected from unauthenticated scrapers.
 
 ---
 
-## How It Works For Your Friends
+## Step 5: How Cross-Device Sync Works
 
-1. **You** open the app, tap **Add Music**, select a song from your phone, and hit **Add Track**.
-2. The app uploads the audio file to Firebase Cloud Storage and stores the title, artist, duration, and audio stream URL in Firestore.
-3. When **your friends** install and open the app on their devices, the Firestore real-time listener automatically loads all shared tracks!
-4. They can tap any song to stream or download it instantly.
+1. **Upload**: When you tap **Add Music**, select a song, and tap **Add Track**:
+   - The app signs in anonymously (if not already authenticated).
+   - The audio stream is uploaded to Firebase Cloud Storage.
+   - The song metadata (title, artist, duration, and cloud download URL) is written to Firestore in the `songs` collection.
+   - A snackbar confirmation appears: `✓ Song '<title>' uploaded and synced with friends!`.
+2. **Instant Sync for Friends**:
+   - When your friend installs and opens the app, `FirebaseSongDataSource` listens to Firestore in real-time.
+   - All songs published by you (and other friends) appear immediately in their song list with a cyan **Cloud** badge.
+   - Tapping any cloud song streams high-fidelity audio directly from Cloud Storage via ExoPlayer.
+3. **Offline / Device Fallback**:
+   - If an upload fails (e.g., no internet or incorrect Firebase rules), the app saves the track locally, flags it with a **Device** badge, and displays a descriptive error message explaining why cloud sync failed.
+
