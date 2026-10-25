@@ -6,8 +6,11 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.res.painterResource
+import com.example.basgaane.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -194,24 +197,14 @@ fun FullPlayerSheet(
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        Box(
+                        Image(
+                            painter = painterResource(id = R.drawable.app_logo),
+                            contentDescription = song.title,
                             modifier = Modifier
                                 .size(160.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.linearGradient(
-                                        listOf(AccentGradientStart, AccentGradientEnd)
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MusicNote,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(64.dp)
-                            )
-                        }
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
                     }
 
                     Box(

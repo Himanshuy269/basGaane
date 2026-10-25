@@ -113,6 +113,7 @@ class MusicViewModel(
 
     fun playSong(song: Song) {
         playerController.playSong(song, filteredSongs.value)
+        showFullPlayer()
     }
 
     fun togglePlayPause() {
