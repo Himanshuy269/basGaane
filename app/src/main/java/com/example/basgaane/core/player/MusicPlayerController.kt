@@ -45,6 +45,8 @@ class MusicPlayerController(
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
+    var onPlaybackEnded: (() -> Unit)? = null
+
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _uiState.update { it.copy(isPlaying = isPlaying) }
@@ -63,6 +65,15 @@ class MusicPlayerController(
                     isBuffering = isBuffering,
                     durationMs = duration
                 )
+            }
+
+            if (playbackState == Player.STATE_ENDED) {
+                if (_uiState.value.repeatMode == Player.REPEAT_MODE_ONE) {
+                    mediaController?.seekTo(0L)
+                    mediaController?.play()
+                } else {
+                    onPlaybackEnded?.invoke()
+                }
             }
         }
 

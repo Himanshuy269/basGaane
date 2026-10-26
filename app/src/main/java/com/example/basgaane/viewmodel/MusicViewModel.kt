@@ -266,6 +266,9 @@ class MusicViewModel(
         viewModelScope.launch {
             performOnlineSearch("Trending Songs")
         }
+        playerController.onPlaybackEnded = {
+            handleSongEnded()
+        }
     }
 
     fun selectTab(tab: HomeTab) {
@@ -305,10 +308,41 @@ class MusicViewModel(
         performOnlineSearch(genre)
     }
 
+    // Active Online Autoplay & Queue State
+    private val _onlineQueue = MutableStateFlow<List<JioSaavnSongItem>>(emptyList())
+    val onlineQueue: StateFlow<List<JioSaavnSongItem>> = _onlineQueue.asStateFlow()
+
+    private var currentOnlineIndex: Int = -1
+    private var isOnlinePlaybackActive: Boolean = false
+    private var activeOnlineType: String = ""
+
     fun playOnlineSong(item: JioSaavnSongItem) {
+        isOnlinePlaybackActive = true
+        activeOnlineType = _selectedOnlineGenre.value.ifBlank {
+            _onlineSearchQuery.value.ifBlank {
+                item.cleanArtist
+            }
+        }
+
+        // Initialize active online queue with current search results or category
+        val currentResults = _onlineSearchResults.value
+        val queue = if (currentResults.any { it.id == item.id || it.cleanTitle == item.cleanTitle }) {
+            currentResults
+        } else {
+            listOf(item) + currentResults
+        }
+        _onlineQueue.value = queue
+        currentOnlineIndex = queue.indexOfFirst { it.id == item.id || it.cleanTitle == item.cleanTitle }.coerceAtLeast(0)
+
+        streamAndPlayOnlineItem(item)
+        showFullPlayer()
+    }
+
+    private fun streamAndPlayOnlineItem(item: JioSaavnSongItem) {
         val encryptedToken = item.encryptedMediaUrl
         if (encryptedToken.isNullOrBlank()) {
             _userMessage.value = "Cannot stream this track (media token unavailable)"
+            playNextOnlineSong()
             return
         }
         viewModelScope.launch {
@@ -326,11 +360,76 @@ class MusicViewModel(
                     isLocal = false,
                     addedBy = "Online Stream"
                 )
-                playSong(song)
+                // Set only this online track into the controller so local library is never queued
+                playerController.playSong(song, listOf(song))
             }.onFailure { error ->
-                _userMessage.value = "Failed to stream audio: ${error.localizedMessage}"
+                android.util.Log.e("MusicViewModel", "Failed to stream audio for '${item.cleanTitle}': ${error.localizedMessage}")
+                _userMessage.value = "Skipping track (stream unavailable)"
+                playNextOnlineSong()
             }
         }
+    }
+
+    private fun handleSongEnded() {
+        if (isOnlinePlaybackActive) {
+            playNextOnlineSong()
+        } else {
+            playerController.skipNext()
+        }
+    }
+
+    fun playNextOnlineSong() {
+        if (!isOnlinePlaybackActive) return
+        viewModelScope.launch {
+            val queue = _onlineQueue.value
+            val nextIndex = currentOnlineIndex + 1
+
+            if (nextIndex < queue.size) {
+                // Play next song in existing online queue
+                currentOnlineIndex = nextIndex
+                val nextItem = queue[nextIndex]
+                streamAndPlayOnlineItem(nextItem)
+            } else {
+                // End of queue reached: automatically discover more songs of the SAME type
+                val currentSong = playerController.uiState.value.currentSong
+                val queryForMore = currentSong?.artist?.takeIf { it.isNotBlank() && it != "Unknown Artist" }
+                    ?: activeOnlineType.takeIf { it.isNotBlank() }
+                    ?: "Trending Songs"
+
+                val result = onlineMusicRepository.searchSongs(queryForMore)
+                result.onSuccess { newSongs ->
+                    val existingIds = queue.mapNotNull { it.id }.toSet()
+                    val freshSongs = newSongs.filter { it.id !in existingIds && !it.encryptedMediaUrl.isNullOrBlank() }
+
+                    if (freshSongs.isNotEmpty()) {
+                        val updatedQueue = queue + freshSongs
+                        _onlineQueue.value = updatedQueue
+                        currentOnlineIndex = nextIndex
+                        streamAndPlayOnlineItem(freshSongs.first())
+                    } else if (queue.isNotEmpty()) {
+                        // Loop to the beginning of the queue
+                        currentOnlineIndex = 0
+                        streamAndPlayOnlineItem(queue[0])
+                    }
+                }.onFailure {
+                    if (queue.isNotEmpty()) {
+                        currentOnlineIndex = 0
+                        streamAndPlayOnlineItem(queue[0])
+                    }
+                }
+            }
+        }
+    }
+
+    fun playPreviousOnlineSong() {
+        if (!isOnlinePlaybackActive) return
+        val queue = _onlineQueue.value
+        if (queue.isEmpty()) return
+
+        val prevIndex = if (currentOnlineIndex <= 0) queue.size - 1 else currentOnlineIndex - 1
+        currentOnlineIndex = prevIndex
+        val prevItem = queue[prevIndex]
+        streamAndPlayOnlineItem(prevItem)
     }
 
     fun selectPlaylist(playlist: Playlist?) {
@@ -428,6 +527,9 @@ class MusicViewModel(
     }
 
     fun playSong(song: Song, customQueue: List<Song>? = null) {
+        if (song.isLocal || song.addedBy != "Online Stream") {
+            isOnlinePlaybackActive = false
+        }
         val queue = customQueue ?: filteredSongs.value
         playerController.playSong(song, queue)
         showFullPlayer()
@@ -442,11 +544,19 @@ class MusicViewModel(
     }
 
     fun skipNext() {
-        playerController.skipNext()
+        if (isOnlinePlaybackActive && _onlineQueue.value.isNotEmpty()) {
+            playNextOnlineSong()
+        } else {
+            playerController.skipNext()
+        }
     }
 
     fun skipPrevious() {
-        playerController.skipPrevious()
+        if (isOnlinePlaybackActive && _onlineQueue.value.isNotEmpty()) {
+            playPreviousOnlineSong()
+        } else {
+            playerController.skipPrevious()
+        }
     }
 
     fun toggleShuffle() {
