@@ -40,6 +40,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            signingConfig = signingConfigs.getByName("release")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
