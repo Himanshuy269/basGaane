@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.RocketLaunch
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -80,8 +81,10 @@ fun HomeTopBar(
     songCount: Int,
     userName: String,
     themeMode: ThemeMode,
+    isUpdateAvailable: Boolean = false,
     onToggleTheme: () -> Unit,
     onOpenEditProfileDialog: () -> Unit,
+    onOpenAppUpdateDialog: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -148,6 +151,39 @@ fun HomeTopBar(
                     tint = themeTint,
                     modifier = Modifier.size(16.dp)
                 )
+            }
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            // App Updates Pill Button
+            Box(
+                modifier = Modifier
+                    .crystalPill(
+                        shape = RoundedCornerShape(14.dp),
+                        isActive = isUpdateAvailable,
+                        onClick = onOpenAppUpdateDialog
+                    )
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.RocketLaunch,
+                        contentDescription = "App Updates",
+                        tint = if (isUpdateAvailable) PrismMagenta else PrismCyan,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    if (isUpdateAvailable) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "New",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = PrismMagenta
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.width(6.dp))

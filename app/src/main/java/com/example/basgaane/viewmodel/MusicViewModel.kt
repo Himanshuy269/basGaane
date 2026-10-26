@@ -121,12 +121,23 @@ class MusicViewModel(
     private val _isEditProfileDialogOpen = MutableStateFlow(false)
     val isEditProfileDialogOpen: StateFlow<Boolean> = _isEditProfileDialogOpen.asStateFlow()
 
+    private val _isAppUpdateDialogOpen = MutableStateFlow(false)
+    val isAppUpdateDialogOpen: StateFlow<Boolean> = _isAppUpdateDialogOpen.asStateFlow()
+
     fun openEditProfileDialog() {
         _isEditProfileDialogOpen.value = true
     }
 
     fun closeEditProfileDialog() {
         _isEditProfileDialogOpen.value = false
+    }
+
+    fun openAppUpdateDialog() {
+        _isAppUpdateDialogOpen.value = true
+    }
+
+    fun closeAppUpdateDialog() {
+        _isAppUpdateDialogOpen.value = false
     }
 
     fun setUserName(name: String) {

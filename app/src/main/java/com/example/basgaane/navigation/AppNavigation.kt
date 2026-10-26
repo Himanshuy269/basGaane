@@ -25,6 +25,7 @@ import com.example.basgaane.viewmodel.HomeTab
 import com.example.basgaane.viewmodel.MusicViewModel
 import com.example.basgaane.ui.common.AddMusicDialog
 import com.example.basgaane.ui.common.AddToPlaylistDialog
+import com.example.basgaane.ui.common.AppUpdateSectionDialog
 import com.example.basgaane.ui.common.CreatePlaylistDialog
 import com.example.basgaane.ui.common.EditProfileDialog
 import com.example.basgaane.ui.common.UpdateDialog
@@ -66,6 +67,7 @@ fun AppNavigation(
     val userMessage by viewModel.userMessage.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val isEditProfileDialogOpen by viewModel.isEditProfileDialogOpen.collectAsState()
+    val isAppUpdateDialogOpen by viewModel.isAppUpdateDialogOpen.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
 
     val updateInfo by viewModel.updateInfo.collectAsState()
@@ -144,6 +146,8 @@ fun AppNavigation(
                     onDeleteSong = viewModel::deleteSong,
                     onAddMusicClick = viewModel::openAddMusicDialog,
                     onOpenEditProfileDialog = viewModel::openEditProfileDialog,
+                    updateInfo = updateInfo,
+                    onOpenAppUpdateDialog = viewModel::openAppUpdateDialog,
                     snackbarHostState = snackbarHostState
                 )
             }
@@ -269,12 +273,28 @@ fun AppNavigation(
         onDismiss = viewModel::closeEditProfileDialog,
         onSaveName = viewModel::setUserName,
         appVersion = viewModel.currentVersionName,
+        updateInfo = updateInfo,
         isCheckingForUpdates = isCheckingUpdates,
-        updateFeedback = updateFeedback,
-        onCheckForUpdates = { viewModel.checkForUpdates(manual = true) }
+        downloadState = downloadState,
+        onCheckForUpdates = { viewModel.checkForUpdates(manual = true) },
+        onStartDownload = viewModel::startUpdateDownload,
+        onInstall = viewModel::installUpdate
     )
 
-    // Modal: In-App Update Dialog
+    // Modal: Dedicated App Updates Section Dialog
+    AppUpdateSectionDialog(
+        isOpen = isAppUpdateDialogOpen,
+        currentVersionName = viewModel.currentVersionName,
+        updateInfo = updateInfo,
+        isCheckingForUpdates = isCheckingUpdates,
+        downloadState = downloadState,
+        onCheckForUpdates = { viewModel.checkForUpdates(manual = true) },
+        onStartDownload = viewModel::startUpdateDownload,
+        onInstall = viewModel::installUpdate,
+        onDismiss = viewModel::closeAppUpdateDialog
+    )
+
+    // Modal: In-App Update Dialog (Full popup)
     UpdateDialog(
         updateInfo = updateInfo,
         currentVersionName = viewModel.currentVersionName,

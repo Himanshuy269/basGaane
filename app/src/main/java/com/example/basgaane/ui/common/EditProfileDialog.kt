@@ -42,6 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.basgaane.core.update.AppUpdateInfo
+import com.example.basgaane.core.update.UpdateDownloadState
 import com.example.basgaane.ui.theme.InputFieldContainerFocused
 import com.example.basgaane.ui.theme.InputFieldContainerUnfocused
 import com.example.basgaane.ui.theme.LocalBasGaaneColors
@@ -64,9 +66,12 @@ fun EditProfileDialog(
     onDismiss: () -> Unit,
     onSaveName: (String) -> Unit,
     appVersion: String = "1.0.1",
+    updateInfo: AppUpdateInfo? = null,
     isCheckingForUpdates: Boolean = false,
-    updateFeedback: String? = null,
-    onCheckForUpdates: () -> Unit = {}
+    downloadState: UpdateDownloadState = UpdateDownloadState.Idle,
+    onCheckForUpdates: () -> Unit = {},
+    onStartDownload: () -> Unit = {},
+    onInstall: (String) -> Unit = {}
 ) {
     if (!isOpen) return
 
@@ -235,133 +240,16 @@ fun EditProfileDialog(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // App Version & In-App Update Section
-                Text(
-                    text = "App Updates",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = TextPrimary
+                // Dedicated App Update Section
+                AppUpdateSection(
+                    currentVersionName = appVersion,
+                    updateInfo = updateInfo,
+                    isCheckingForUpdates = isCheckingForUpdates,
+                    downloadState = downloadState,
+                    onCheckForUpdates = onCheckForUpdates,
+                    onStartDownload = onStartDownload,
+                    onInstall = onInstall
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val colors = LocalBasGaaneColors.current
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(colors.glassCard.copy(alpha = 0.5f))
-                        .border(
-                            width = 1.dp,
-                            brush = colors.borderSubtleBrush,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .padding(14.dp)
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(PrismCyan.copy(alpha = 0.15f))
-                                        .border(
-                                            width = 1.dp,
-                                            color = PrismCyan.copy(alpha = 0.4f),
-                                            shape = RoundedCornerShape(10.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.RocketLaunch,
-                                        contentDescription = null,
-                                        tint = PrismCyan,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.width(10.dp))
-
-                                Column {
-                                    Text(
-                                        text = "BasGaane v$appVersion",
-                                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = TextPrimary
-                                    )
-                                    Text(
-                                        text = "Free GitHub Cloud Updates",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = TextTertiary
-                                    )
-                                }
-                            }
-
-                            // Check Updates Pill Button
-                            Box(
-                                modifier = Modifier
-                                    .crystalPill(
-                                        shape = RoundedCornerShape(12.dp),
-                                        isActive = false,
-                                        onClick = {
-                                            if (!isCheckingForUpdates) {
-                                                onCheckForUpdates()
-                                            }
-                                        }
-                                    )
-                                    .padding(horizontal = 12.dp, vertical = 7.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (isCheckingForUpdates) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(12.dp),
-                                            strokeWidth = 1.5.dp,
-                                            color = PrismCyan
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = "Checking...",
-                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                                            color = TextSecondary
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = Icons.Default.Refresh,
-                                            contentDescription = "Check for updates",
-                                            tint = PrismCyan,
-                                            modifier = Modifier.size(13.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = "Check",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.SemiBold
-                                            ),
-                                            color = TextPrimary
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!updateFeedback.isNullOrBlank()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            val isLatest = updateFeedback.contains("latest", ignoreCase = true)
-                            Text(
-                                text = updateFeedback,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 11.sp
-                                ),
-                                color = if (isLatest) PrismEmerald else PrismCyan
-                            )
-                        }
-                    }
-                }
 
                 Spacer(modifier = Modifier.height(22.dp))
 
