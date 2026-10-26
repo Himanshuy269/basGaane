@@ -1,0 +1,70 @@
+name: Build & Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Release Tag (e.g. v1.0.2)'
+        required: true
+        default: 'v1.0.2'
+      release_title:
+        description: 'Release Title'
+        required: false
+        default: 'BasGaane Update'
+      release_notes:
+        description: 'Release Notes'
+        required: false
+        default: 'Performance improvements and bug fixes.'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21 (JBR / Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Determine Release Details
+        id: release_info
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.version_tag }}" >> $GITHUB_OUTPUT
+            echo "title=${{ github.event.inputs.release_title }}" >> $GITHUB_OUTPUT
+            echo "body=${{ github.event.inputs.release_notes }}" >> $GITHUB_OUTPUT
+          else
+            TAG_NAME="${{ github.ref_name }}"
+            echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "title=BasGaane $TAG_NAME" >> $GITHUB_OUTPUT
+            echo "body=BasGaane $TAG_NAME release with automatic in-app update support." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release & Upload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          name: ${{ steps.release_info.outputs.title }}
+          body: ${{ steps.release_info.outputs.body }}
+          draft: false
+          prerelease: false
+          files: app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

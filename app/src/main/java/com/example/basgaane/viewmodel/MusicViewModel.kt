@@ -8,6 +8,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.basgaane.core.player.MusicPlayerController
 import com.example.basgaane.core.player.PlayerUiState
+import com.example.basgaane.core.update.AppUpdateInfo
+import com.example.basgaane.core.update.AppUpdateManager
+import com.example.basgaane.core.update.UpdateDownloadState
 import com.example.basgaane.core.utils.AudioMetadataHelper
 import com.example.basgaane.data.repository.MusicRepositoryImpl
 import com.example.basgaane.data.repository.PlaylistRepositoryImpl
@@ -425,6 +428,79 @@ class MusicViewModel(
                 _isUploading.value = false
             }
         }
+    }
+
+    private val appUpdateManager by lazy { AppUpdateManager(getApplication()) }
+
+    // In-App Update State
+    private val _updateInfo = MutableStateFlow<AppUpdateInfo?>(null)
+    val updateInfo: StateFlow<AppUpdateInfo?> = _updateInfo.asStateFlow()
+
+    private val _downloadState = MutableStateFlow<UpdateDownloadState>(UpdateDownloadState.Idle)
+    val downloadState: StateFlow<UpdateDownloadState> = _downloadState.asStateFlow()
+
+    private val _isCheckingForUpdates = MutableStateFlow(false)
+    val isCheckingForUpdates: StateFlow<Boolean> = _isCheckingForUpdates.asStateFlow()
+
+    private val _updateCheckFeedback = MutableStateFlow<String?>(null)
+    val updateCheckFeedback: StateFlow<String?> = _updateCheckFeedback.asStateFlow()
+
+    val currentVersionName: String
+        get() = appUpdateManager.getCurrentVersionName()
+
+    val currentVersionCode: Long
+        get() = appUpdateManager.getCurrentVersionCode()
+
+    fun checkForUpdates(manual: Boolean = false) {
+        viewModelScope.launch {
+            _isCheckingForUpdates.value = true
+            if (manual) {
+                _updateCheckFeedback.value = "Checking for updates..."
+            }
+            try {
+                val update = appUpdateManager.checkForUpdates()
+                _updateInfo.value = update
+                if (update != null) {
+                    _downloadState.value = UpdateDownloadState.Idle
+                    _updateCheckFeedback.value = "New update available: v${update.latestVersionName}"
+                } else if (manual) {
+                    _updateCheckFeedback.value = "You are on the latest version (v${currentVersionName})!"
+                }
+            } catch (e: Exception) {
+                if (manual) {
+                    _updateCheckFeedback.value = "Couldn't check updates: ${e.localizedMessage}"
+                }
+            } finally {
+                _isCheckingForUpdates.value = false
+            }
+        }
+    }
+
+    fun startUpdateDownload() {
+        val update = _updateInfo.value ?: return
+        viewModelScope.launch {
+            appUpdateManager.downloadUpdate(update) { state ->
+                _downloadState.value = state
+            }
+        }
+    }
+
+    fun installUpdate(apkPath: String) {
+        val result = appUpdateManager.installUpdate(apkPath)
+        if (result.isFailure) {
+            _downloadState.value = UpdateDownloadState.Error(
+                result.exceptionOrNull()?.localizedMessage ?: "Installation failed to launch"
+            )
+        }
+    }
+
+    fun dismissUpdateDialog() {
+        _updateInfo.value = null
+        _downloadState.value = UpdateDownloadState.Idle
+    }
+
+    fun clearUpdateFeedback() {
+        _updateCheckFeedback.value = null
     }
 
     fun clearUserMessage() {

@@ -27,6 +27,7 @@ import com.example.basgaane.ui.common.AddMusicDialog
 import com.example.basgaane.ui.common.AddToPlaylistDialog
 import com.example.basgaane.ui.common.CreatePlaylistDialog
 import com.example.basgaane.ui.common.EditProfileDialog
+import com.example.basgaane.ui.common.UpdateDialog
 import com.example.basgaane.ui.home.HomeScreen
 import com.example.basgaane.ui.player.FullPlayerSheet
 import com.example.basgaane.ui.player.MiniPlayer
@@ -67,7 +68,17 @@ fun AppNavigation(
     val isEditProfileDialogOpen by viewModel.isEditProfileDialogOpen.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
 
+    val updateInfo by viewModel.updateInfo.collectAsState()
+    val downloadState by viewModel.downloadState.collectAsState()
+    val isCheckingUpdates by viewModel.isCheckingForUpdates.collectAsState()
+    val updateFeedback by viewModel.updateCheckFeedback.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Check for updates in the background on app start
+    LaunchedEffect(Unit) {
+        viewModel.checkForUpdates(manual = false)
+    }
 
     LaunchedEffect(userMessage) {
         userMessage?.let { message ->
@@ -256,7 +267,21 @@ fun AppNavigation(
         currentThemeMode = themeMode,
         onSelectThemeMode = viewModel::setThemeMode,
         onDismiss = viewModel::closeEditProfileDialog,
-        onSaveName = viewModel::setUserName
+        onSaveName = viewModel::setUserName,
+        appVersion = viewModel.currentVersionName,
+        isCheckingForUpdates = isCheckingUpdates,
+        updateFeedback = updateFeedback,
+        onCheckForUpdates = { viewModel.checkForUpdates(manual = true) }
+    )
+
+    // Modal: In-App Update Dialog
+    UpdateDialog(
+        updateInfo = updateInfo,
+        currentVersionName = viewModel.currentVersionName,
+        downloadState = downloadState,
+        onStartDownload = viewModel::startUpdateDownload,
+        onInstall = viewModel::installUpdate,
+        onDismiss = viewModel::dismissUpdateDialog
     )
 
     // Modal: Create Playlist Dialog
