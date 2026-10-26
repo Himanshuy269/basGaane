@@ -12,6 +12,8 @@ import com.example.basgaane.core.update.AppUpdateInfo
 import com.example.basgaane.core.update.AppUpdateManager
 import com.example.basgaane.core.update.UpdateDownloadState
 import com.example.basgaane.core.utils.AudioMetadataHelper
+import com.example.basgaane.data.remote.model.JioSaavnSongItem
+import com.example.basgaane.data.remote.repository.OnlineMusicRepository
 import com.example.basgaane.data.repository.MusicRepositoryImpl
 import com.example.basgaane.data.repository.PlaylistRepositoryImpl
 import com.example.basgaane.domain.model.Playlist
@@ -34,9 +36,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 enum class HomeTab {
     HOME,
+    ONLINE,
     SEARCH,
     PLAYLISTS
 }
@@ -235,11 +239,32 @@ class MusicViewModel(
     private val _userMessage = MutableStateFlow<String?>(null)
     val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
 
+    // Retrofit Online Streaming Repository & States
+    private val onlineMusicRepository by lazy { OnlineMusicRepository() }
+
+    private val _onlineSearchQuery = MutableStateFlow("")
+    val onlineSearchQuery: StateFlow<String> = _onlineSearchQuery.asStateFlow()
+
+    private val _onlineSearchResults = MutableStateFlow<List<JioSaavnSongItem>>(emptyList())
+    val onlineSearchResults: StateFlow<List<JioSaavnSongItem>> = _onlineSearchResults.asStateFlow()
+
+    private val _isSearchingOnline = MutableStateFlow(false)
+    val isSearchingOnline: StateFlow<Boolean> = _isSearchingOnline.asStateFlow()
+
+    private val _resolvingOnlineSongId = MutableStateFlow<String?>(null)
+    val resolvingOnlineSongId: StateFlow<String?> = _resolvingOnlineSongId.asStateFlow()
+
+    private val _selectedOnlineGenre = MutableStateFlow("Trending")
+    val selectedOnlineGenre: StateFlow<String> = _selectedOnlineGenre.asStateFlow()
+
     init {
         viewModelScope.launch {
             allSongs.collect { songs ->
                 playerController.setPlaylist(songs)
             }
+        }
+        viewModelScope.launch {
+            performOnlineSearch("Trending Songs")
         }
     }
 
@@ -253,6 +278,59 @@ class MusicViewModel(
 
     fun onSearchFilterTagChanged(tag: String) {
         _searchFilterTag.value = tag
+    }
+
+    fun onOnlineSearchQueryChanged(query: String) {
+        _onlineSearchQuery.value = query
+    }
+
+    fun performOnlineSearch(query: String = _onlineSearchQuery.value) {
+        val q = query.trim()
+        if (q.isBlank()) return
+        viewModelScope.launch {
+            _isSearchingOnline.value = true
+            val result = onlineMusicRepository.searchSongs(q)
+            _isSearchingOnline.value = false
+            result.onSuccess { songs ->
+                _onlineSearchResults.value = songs
+            }.onFailure { error ->
+                _userMessage.value = "Online search error: ${error.localizedMessage}"
+            }
+        }
+    }
+
+    fun selectOnlineGenre(genre: String) {
+        _selectedOnlineGenre.value = genre
+        _onlineSearchQuery.value = genre
+        performOnlineSearch(genre)
+    }
+
+    fun playOnlineSong(item: JioSaavnSongItem) {
+        val encryptedToken = item.encryptedMediaUrl
+        if (encryptedToken.isNullOrBlank()) {
+            _userMessage.value = "Cannot stream this track (media token unavailable)"
+            return
+        }
+        viewModelScope.launch {
+            _resolvingOnlineSongId.value = item.id
+            val result = onlineMusicRepository.resolveStreamUrl(encryptedToken)
+            _resolvingOnlineSongId.value = null
+            result.onSuccess { streamUrl ->
+                val song = Song(
+                    id = item.id ?: UUID.randomUUID().toString(),
+                    title = item.cleanTitle,
+                    artist = item.cleanArtist,
+                    audioUrl = streamUrl,
+                    coverUrl = item.hdCoverUrl,
+                    durationMs = item.durationMs,
+                    isLocal = false,
+                    addedBy = "Online Stream"
+                )
+                playSong(song)
+            }.onFailure { error ->
+                _userMessage.value = "Failed to stream audio: ${error.localizedMessage}"
+            }
+        }
     }
 
     fun selectPlaylist(playlist: Playlist?) {

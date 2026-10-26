@@ -5,6 +5,7 @@ package com.example.basgaane.navigation
  */
 object NavigationRoutes {
     const val HOME = "home"
+    const val ONLINE = "online"
     const val SEARCH = "search"
     const val PLAYLISTS = "playlists"
     const val PLAYLIST_DETAIL = "playlist_detail/{playlistId}"

@@ -30,6 +30,7 @@ import com.example.basgaane.ui.common.CreatePlaylistDialog
 import com.example.basgaane.ui.common.EditProfileDialog
 import com.example.basgaane.ui.common.UpdateDialog
 import com.example.basgaane.ui.home.HomeScreen
+import com.example.basgaane.ui.online.OnlineMusicScreen
 import com.example.basgaane.ui.player.FullPlayerSheet
 import com.example.basgaane.ui.player.MiniPlayer
 import com.example.basgaane.ui.playlistdetail.PlaylistDetailScreen
@@ -76,6 +77,12 @@ fun AppNavigation(
     val isCheckingUpdates by viewModel.isCheckingForUpdates.collectAsState()
     val updateFeedback by viewModel.updateCheckFeedback.collectAsState()
 
+    val onlineSearchQuery by viewModel.onlineSearchQuery.collectAsState()
+    val onlineSearchResults by viewModel.onlineSearchResults.collectAsState()
+    val isSearchingOnline by viewModel.isSearchingOnline.collectAsState()
+    val resolvingOnlineSongId by viewModel.resolvingOnlineSongId.collectAsState()
+    val selectedOnlineGenre by viewModel.selectedOnlineGenre.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Check for updates in the background on app start
@@ -95,6 +102,7 @@ fun AppNavigation(
         navController.currentBackStackEntryFlow.collect { backStackEntry ->
             when (backStackEntry.destination.route) {
                 NavigationRoutes.HOME -> viewModel.selectTab(HomeTab.HOME)
+                NavigationRoutes.ONLINE -> viewModel.selectTab(HomeTab.ONLINE)
                 NavigationRoutes.SEARCH -> viewModel.selectTab(HomeTab.SEARCH)
                 NavigationRoutes.PLAYLISTS -> viewModel.selectTab(HomeTab.PLAYLISTS)
             }
@@ -107,6 +115,12 @@ fun AppNavigation(
             HomeTab.HOME -> {
                 navController.navigate(NavigationRoutes.HOME) {
                     popUpTo(NavigationRoutes.HOME) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+            HomeTab.ONLINE -> {
+                navController.navigate(NavigationRoutes.ONLINE) {
+                    popUpTo(NavigationRoutes.HOME)
                     launchSingleTop = true
                 }
             }
@@ -150,6 +164,26 @@ fun AppNavigation(
                     updateInfo = updateInfo,
                     onOpenAppUpdateDialog = viewModel::openAppUpdateDialog,
                     snackbarHostState = snackbarHostState
+                )
+            }
+
+            // Online Music Streaming Destination
+            composable(NavigationRoutes.ONLINE) {
+                OnlineMusicScreen(
+                    selectedTab = selectedTab,
+                    onTabSelected = onTabSelected,
+                    searchQuery = onlineSearchQuery,
+                    onSearchQueryChanged = viewModel::onOnlineSearchQueryChanged,
+                    onPerformSearch = viewModel::performOnlineSearch,
+                    selectedGenre = selectedOnlineGenre,
+                    onSelectGenre = viewModel::selectOnlineGenre,
+                    onlineSongs = onlineSearchResults,
+                    isSearching = isSearchingOnline,
+                    resolvingSongId = resolvingOnlineSongId,
+                    currentSong = currentSong,
+                    isPlaying = isPlaying,
+                    onSongClick = viewModel::playOnlineSong,
+                    onAddToPlaylistClick = viewModel::openAddToPlaylistDialog
                 )
             }
 

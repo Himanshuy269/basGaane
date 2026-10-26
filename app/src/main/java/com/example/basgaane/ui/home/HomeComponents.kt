@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
@@ -254,7 +255,8 @@ fun HomeTabsCapsule(
         HomeTab.entries.forEach { tab ->
             val isSelected = selectedTab == tab
             val (title, icon) = when (tab) {
-                HomeTab.HOME -> "All Tracks" to Icons.Default.Headphones
+                HomeTab.HOME -> "Library" to Icons.Default.Headphones
+                HomeTab.ONLINE -> "Online" to Icons.Default.Language
                 HomeTab.SEARCH -> "Search" to Icons.Default.Search
                 HomeTab.PLAYLISTS -> "Playlists" to Icons.AutoMirrored.Filled.PlaylistAdd
             }
