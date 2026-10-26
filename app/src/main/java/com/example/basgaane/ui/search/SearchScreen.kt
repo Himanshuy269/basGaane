@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -45,7 +46,7 @@ fun SearchScreen(
     onTabSelected: ((HomeTab) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val filterTags = listOf("All", "Cloud", "Device", "Synth", "Groove", "Chill", "Acoustic")
+    val filterTags = remember { listOf("All", "Cloud", "Device", "Synth", "Groove", "Chill", "Acoustic") }
 
     LiquidCrystalBackground(modifier = modifier.fillMaxSize()) {
         Column(
@@ -121,7 +122,11 @@ fun SearchScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(bottom = 90.dp)
                 ) {
-                    itemsIndexed(filteredSongs, key = { _, song -> song.id }) { index, song ->
+                    itemsIndexed(
+                        items = filteredSongs,
+                        key = { _, song -> song.id },
+                        contentType = { _, _ -> "search_song_item" }
+                    ) { index, song ->
                         val isCurrent = song.id == currentSong?.id
 
                         SearchSongItemCard(

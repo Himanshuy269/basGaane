@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -16,6 +17,7 @@ import androidx.core.view.WindowCompat
 /**
  * Liquid Crystal design system color tokens supporting both
  * Obsidian Dark Mode and Luminous Frosted Opal Light Mode.
+ * Pre-computes Brushes to ensure zero allocation during list scrolling.
  */
 data class BasGaaneColors(
     val isDark: Boolean,
@@ -41,7 +43,16 @@ data class BasGaaneColors(
     val borderActive: List<Color>,
     val inputContainerFocused: Color,
     val inputContainerUnfocused: Color,
-    val inputBorderUnfocused: Color
+    val inputBorderUnfocused: Color,
+    val borderSubtleBrush: Brush = Brush.linearGradient(borderSubtle),
+    val borderActiveBrush: Brush = Brush.linearGradient(borderActive),
+    val cardBackgroundBrush: Brush = Brush.linearGradient(listOf(cardBackgroundStart, cardBackgroundEnd)),
+    val cardBackgroundActiveBrush: Brush = Brush.linearGradient(listOf(cardBackgroundActiveStart, cardBackgroundActiveEnd)),
+    val pillInactiveBgBrush: Brush = Brush.linearGradient(listOf(pillInactiveBgStart, pillInactiveBgEnd)),
+    val pillActiveBgBrush: Brush = Brush.linearGradient(
+        if (isDark) listOf(Color(0xFF8B5CF6).copy(alpha = 0.35f), Color(0xFF00F2FE).copy(alpha = 0.25f))
+        else listOf(Color(0xFF7C3AED).copy(alpha = 0.20f), Color(0xFF0284C7).copy(alpha = 0.15f))
+    )
 )
 
 val DarkBasGaaneColors = BasGaaneColors(
@@ -71,10 +82,10 @@ val DarkBasGaaneColors = BasGaaneColors(
         Color(0x1EFFFFFF)
     ),
     borderActive = listOf(
-        Color(0xFF00F2FE), // PrismCyan
-        Color(0xFF8B5CF6), // PrismViolet
-        Color(0xFFFF2A85), // PrismMagenta
-        Color(0xFF00F2FE)  // PrismCyan
+        Color(0xFF00F2FE),
+        Color(0xFF8B5CF6),
+        Color(0xFFFF2A85),
+        Color(0xFF00F2FE)
     ),
     inputContainerFocused = Color(0x600C101C),
     inputContainerUnfocused = Color(0x400C101C),

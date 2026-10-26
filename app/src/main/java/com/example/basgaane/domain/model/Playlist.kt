@@ -1,11 +1,13 @@
 package com.example.basgaane.domain.model
 
+import androidx.compose.runtime.Immutable
 import java.util.UUID
 
 /**
  * Domain entity representing a curated playlist.
- * Allows users and friends to group tracks by mood, genre, or personal taste.
+ * Marked @Immutable for zero-recomposition scrolling in playlist lists.
  */
+@Immutable
 data class Playlist(
     val id: String = UUID.randomUUID().toString(),
     val name: String,

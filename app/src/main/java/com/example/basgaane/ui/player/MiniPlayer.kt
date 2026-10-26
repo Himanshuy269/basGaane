@@ -27,9 +27,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -78,6 +80,8 @@ fun MiniPlayer(
             (progressMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
         } else 0f
 
+        val progressBrush = remember { Brush.horizontalGradient(LiquidProgressGradient) }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -89,22 +93,21 @@ fun MiniPlayer(
                 )
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Liquid glowing rainbow refraction progress bar
+                // High-performance liquid glowing rainbow progress bar rendered in draw phase
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(3.5.dp)
-                        .background(Color(0x22FFFFFF))
-                ) {
-                    if (progress > 0f) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(fraction = progress)
-                                .height(3.5.dp)
-                                .background(Brush.horizontalGradient(LiquidProgressGradient))
-                        )
-                    }
-                }
+                        .drawBehind {
+                            drawRect(color = Color(0x22FFFFFF))
+                            if (progress > 0f) {
+                                drawRect(
+                                    brush = progressBrush,
+                                    size = size.copy(width = size.width * progress)
+                                )
+                            }
+                        }
+                )
 
                 Row(
                     modifier = Modifier

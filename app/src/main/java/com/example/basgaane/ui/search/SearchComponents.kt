@@ -51,6 +51,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.basgaane.domain.model.Song
+import com.example.basgaane.ui.common.CrystalBadgeShape
+import com.example.basgaane.ui.common.CrystalCoverShape
+import com.example.basgaane.ui.common.CrystalGlassCardShape
 import com.example.basgaane.ui.common.EqualizerBars
 import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalGlassCard
@@ -208,7 +211,7 @@ fun SearchSongItemCard(
         modifier = modifier
             .fillMaxWidth()
             .crystalGlassCard(
-                shape = RoundedCornerShape(16.dp),
+                shape = CrystalGlassCardShape,
                 isSelected = isSelected,
                 onClick = onClick
             )
@@ -222,20 +225,20 @@ fun SearchSongItemCard(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(CrystalCoverShape)
                     .border(
                         width = 1.dp,
                         brush = Brush.linearGradient(
                             if (isSelected) listOf(PrismCyan, PrismMagenta)
                             else listOf(Color(0x33FFFFFF), Color(0x11FFFFFF))
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = CrystalCoverShape
                     )
             ) {
                 SongCoverImage(
                     song = song,
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = CrystalCoverShape,
                     showEqualizerIfPlaying = true,
                     isPlaying = isSelected && isPlaying
                 )
@@ -272,7 +275,7 @@ fun SearchSongItemCard(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .crystalPill(
-                                shape = RoundedCornerShape(6.dp),
+                                shape = CrystalBadgeShape,
                                 isActive = !song.isLocal
                             )
                             .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -299,7 +302,7 @@ fun SearchSongItemCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .crystalPill(
-                            shape = RoundedCornerShape(6.dp),
+                            shape = CrystalBadgeShape,
                             isActive = false
                         )
                         .padding(horizontal = 6.dp, vertical = 1.dp)

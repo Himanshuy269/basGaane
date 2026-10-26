@@ -91,7 +91,11 @@ fun PlaylistDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(bottom = 90.dp)
                 ) {
-                    itemsIndexed(playlistSongs, key = { _, s -> s.id }) { index, song ->
+                    itemsIndexed(
+                        items = playlistSongs,
+                        key = { _, s -> s.id },
+                        contentType = { _, _ -> "playlist_song_item" }
+                    ) { index, song ->
                         val isCurrent = song.id == currentSong?.id
 
                         PlaylistItemCard(

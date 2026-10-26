@@ -65,7 +65,11 @@ fun PlaylistsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 90.dp)
                 ) {
-                    items(playlists, key = { it.id }) { playlist ->
+                    items(
+                        items = playlists,
+                        key = { it.id },
+                        contentType = { "playlist_card" }
+                    ) { playlist ->
                         PlaylistCard(
                             playlist = playlist,
                             onClick = { onPlaylistClick(playlist) },

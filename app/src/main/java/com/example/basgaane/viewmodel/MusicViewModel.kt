@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -85,6 +87,25 @@ class MusicViewModel(
     )
 
     val playerUiState: StateFlow<PlayerUiState> = playerController.uiState
+
+    // Distinct flows preventing position tick recompositions in track lists
+    val currentPlayingSong: StateFlow<Song?> = playerController.uiState
+        .map { it.currentSong }
+        .distinctUntilChanged()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    val isTrackPlaying: StateFlow<Boolean> = playerController.uiState
+        .map { it.isPlaying }
+        .distinctUntilChanged()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
 
     // User Profile / Friend Attribution State
     private val profilePrefs = application.getSharedPreferences("user_profile_prefs", Context.MODE_PRIVATE)

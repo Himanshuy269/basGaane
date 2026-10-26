@@ -54,6 +54,8 @@ fun AppNavigation(
     val searchFilterTag by viewModel.searchFilterTag.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
 
+    val currentSong by viewModel.currentPlayingSong.collectAsState()
+    val isPlaying by viewModel.isTrackPlaying.collectAsState()
     val playerState by viewModel.playerUiState.collectAsState()
     val isAddDialogOpen by viewModel.isAddMusicDialogOpen.collectAsState()
     val isCreatePlaylistDialogOpen by viewModel.isCreatePlaylistDialogOpen.collectAsState()
@@ -121,8 +123,8 @@ fun AppNavigation(
                     selectedTab = selectedTab,
                     onTabSelected = onTabSelected,
                     songs = allSongs,
-                    currentSong = playerState.currentSong,
-                    isPlaying = playerState.isPlaying,
+                    currentSong = currentSong,
+                    isPlaying = isPlaying,
                     userName = userName,
                     themeMode = themeMode,
                     onToggleTheme = viewModel::toggleTheme,
@@ -143,8 +145,8 @@ fun AppNavigation(
                     onSearchQueryChanged = viewModel::onSearchQueryChanged,
                     onFilterTagSelected = viewModel::onSearchFilterTagChanged,
                     filteredSongs = filteredSongs,
-                    currentSong = playerState.currentSong,
-                    isPlaying = playerState.isPlaying,
+                    currentSong = currentSong,
+                    isPlaying = isPlaying,
                     onSongClick = viewModel::playSong,
                     onAddToPlaylistClick = viewModel::openAddToPlaylistDialog,
                     onDeleteSong = viewModel::deleteSong,
@@ -179,8 +181,8 @@ fun AppNavigation(
                     PlaylistDetailScreen(
                         playlist = playlist,
                         allSongs = allSongs,
-                        currentSong = playerState.currentSong,
-                        isPlaying = playerState.isPlaying,
+                        currentSong = currentSong,
+                        isPlaying = isPlaying,
                         onBack = { navController.popBackStack() },
                         onPlayAll = { songs -> viewModel.playPlaylist(songs, null) },
                         onShufflePlay = { songs -> viewModel.playPlaylist(songs.shuffled(), null) },

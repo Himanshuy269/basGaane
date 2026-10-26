@@ -44,6 +44,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.basgaane.R
 import com.example.basgaane.domain.model.Playlist
+import com.example.basgaane.ui.common.CrystalCoverShape
+import com.example.basgaane.ui.common.CrystalGlassCardShape
 import com.example.basgaane.ui.common.crystalGlassCard
 import com.example.basgaane.ui.common.crystalPill
 import com.example.basgaane.ui.theme.NeonPink
@@ -159,7 +161,7 @@ fun PlaylistCard(
         modifier = modifier
             .fillMaxWidth()
             .crystalGlassCard(
-                shape = RoundedCornerShape(18.dp),
+                shape = CrystalGlassCardShape,
                 onClick = onClick
             )
     ) {
@@ -172,7 +174,7 @@ fun PlaylistCard(
             Box(
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(CrystalCoverShape)
                     .background(
                         Brush.linearGradient(
                             listOf(PrismViolet, PrismCyan)

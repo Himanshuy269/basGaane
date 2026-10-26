@@ -58,6 +58,9 @@ import com.example.basgaane.R
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.viewmodel.HomeTab
 import com.example.basgaane.viewmodel.ThemeMode
+import com.example.basgaane.ui.common.CrystalBadgeShape
+import com.example.basgaane.ui.common.CrystalCoverShape
+import com.example.basgaane.ui.common.CrystalGlassCardShape
 import com.example.basgaane.ui.common.EqualizerBars
 import com.example.basgaane.ui.common.SongCoverImage
 import com.example.basgaane.ui.common.crystalGlassCard
@@ -312,7 +315,11 @@ fun AllTracksContent(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
+            itemsIndexed(
+                items = songs,
+                key = { _, song -> song.id },
+                contentType = { _, _ -> "song_item" }
+            ) { index, song ->
                 val isSelected = song.id == currentSong?.id
                 SongItemCard(
                     song = song,
@@ -345,7 +352,7 @@ fun SongItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .crystalGlassCard(
-                shape = RoundedCornerShape(18.dp),
+                shape = CrystalGlassCardShape,
                 isSelected = isSelected,
                 onClick = onClick
             )
@@ -360,20 +367,20 @@ fun SongItemCard(
             Box(
                 modifier = Modifier
                     .size(52.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(CrystalCoverShape)
                     .border(
                         width = 1.dp,
                         brush = Brush.linearGradient(
                             if (isSelected) listOf(PrismCyan, PrismMagenta)
                             else listOf(Color(0x33FFFFFF), Color(0x11FFFFFF))
                         ),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = CrystalCoverShape
                     )
             ) {
                 SongCoverImage(
                     song = song,
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = CrystalCoverShape,
                     showEqualizerIfPlaying = true,
                     isPlaying = isSelected && isPlaying
                 )
@@ -410,7 +417,7 @@ fun SongItemCard(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .crystalPill(
-                                shape = RoundedCornerShape(6.dp),
+                                shape = CrystalBadgeShape,
                                 isActive = !song.isLocal
                             )
                             .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -437,7 +444,7 @@ fun SongItemCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .crystalPill(
-                            shape = RoundedCornerShape(6.dp),
+                            shape = CrystalBadgeShape,
                             isActive = false
                         )
                         .padding(horizontal = 6.dp, vertical = 1.dp)

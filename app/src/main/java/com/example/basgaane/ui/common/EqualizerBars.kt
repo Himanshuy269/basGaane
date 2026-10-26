@@ -6,25 +6,22 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.basgaane.ui.theme.NeonCyan
 
 /**
- * Animated equalizer visualizer bars for currently playing songs.
+ * High-performance animated equalizer visualizer bars for currently playing songs.
+ * Draws directly onto Canvas to bypass layout measurement passes.
  */
 @Composable
 fun EqualizerBars(
@@ -67,19 +64,24 @@ fun EqualizerBars(
         label = "Bar3"
     )
 
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(spacing),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        val barHeights = listOf(h1, h2, h3)
-        barHeights.forEach { scale ->
-            Box(
-                modifier = Modifier
-                    .width(barWidth)
-                    .height(maxHeight * (if (isPlaying) scale else 0.3f))
-                    .clip(RoundedCornerShape(percent = 50))
-                    .background(barColor)
+    val totalWidth = (barWidth * 3) + (spacing * 2)
+
+    Canvas(modifier = modifier.size(width = totalWidth, height = maxHeight)) {
+        val barW = barWidth.toPx()
+        val spaceW = spacing.toPx()
+        val totalH = size.height
+        val corner = CornerRadius(barW / 2f, barW / 2f)
+
+        val heights = floatArrayOf(h1, h2, h3)
+        for (i in 0..2) {
+            val h = totalH * heights[i]
+            val x = i * (barW + spaceW)
+            val y = totalH - h
+            drawRoundRect(
+                color = barColor,
+                topLeft = Offset(x, y),
+                size = Size(barW, h),
+                cornerRadius = corner
             )
         }
     }

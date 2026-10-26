@@ -1,11 +1,13 @@
 package com.example.basgaane.domain.model
 
+import androidx.compose.runtime.Immutable
 import java.util.UUID
 
 /**
  * Domain entity representing a music track.
- * Pure business model without platform dependencies.
+ * Marked @Immutable so Compose compiler skips item recompositions during scrolling.
  */
+@Immutable
 data class Song(
     val id: String = UUID.randomUUID().toString(),
     val title: String,
