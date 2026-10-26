@@ -1,5 +1,8 @@
 package com.example.basgaane.ui.home
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,9 +15,11 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.RocketLaunch
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -28,6 +33,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,6 +47,8 @@ import com.example.basgaane.ui.common.crystalGlassCard
 import com.example.basgaane.ui.common.crystalPill
 import com.example.basgaane.ui.theme.BackgroundDark
 import com.example.basgaane.ui.theme.NeonCyan
+import com.example.basgaane.ui.theme.PrismCyan
+import com.example.basgaane.ui.theme.PrismEmerald
 import com.example.basgaane.ui.theme.PrismMagenta
 import com.example.basgaane.ui.theme.SurfaceDarkVariant
 import com.example.basgaane.ui.theme.TextPrimary
@@ -186,6 +195,78 @@ fun HomeScreen(
                     selectedTab = selectedTab,
                     onTabSelected = onTabSelected
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Online Stream Highlight Banner
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .crystalGlassCard(shape = RoundedCornerShape(16.dp))
+                        .clickable { onTabSelected(HomeTab.ONLINE) }
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.linearGradient(
+                                            listOf(PrismEmerald.copy(alpha = 0.2f), PrismCyan.copy(alpha = 0.2f))
+                                        )
+                                    )
+                                    .border(1.dp, PrismCyan.copy(alpha = 0.4f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Language,
+                                    contentDescription = null,
+                                    tint = PrismCyan,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Online Stream (Spotify Style)",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = "Search & play any song in 320 kbps",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = PrismCyan
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .crystalPill(
+                                    shape = RoundedCornerShape(12.dp),
+                                    isActive = true,
+                                    onClick = { onTabSelected(HomeTab.ONLINE) }
+                                )
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "Explore",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = TextPrimary
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
