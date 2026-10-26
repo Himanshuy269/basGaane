@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.basgaane"
         minSdk = 24
         targetSdk = 35
-        versionCode = (project.findProperty("appVersionCode") as? String)?.toIntOrNull() ?: 5
-        versionName = (project.findProperty("appVersionName") as? String) ?: "1.0.4"
+        versionCode = (project.findProperty("appVersionCode") as? String)?.toIntOrNull() ?: 6
+        versionName = (project.findProperty("appVersionName") as? String) ?: "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
