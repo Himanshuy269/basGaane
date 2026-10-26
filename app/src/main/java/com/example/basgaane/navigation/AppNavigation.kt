@@ -71,6 +71,7 @@ fun AppNavigation(
     val themeMode by viewModel.themeMode.collectAsState()
 
     val updateInfo by viewModel.updateInfo.collectAsState()
+    val isAutoUpdatePopupVisible by viewModel.isAutoUpdatePopupVisible.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
     val isCheckingUpdates by viewModel.isCheckingForUpdates.collectAsState()
     val updateFeedback by viewModel.updateCheckFeedback.collectAsState()
@@ -295,14 +296,16 @@ fun AppNavigation(
     )
 
     // Modal: In-App Update Dialog (Full popup)
-    UpdateDialog(
-        updateInfo = updateInfo,
-        currentVersionName = viewModel.currentVersionName,
-        downloadState = downloadState,
-        onStartDownload = viewModel::startUpdateDownload,
-        onInstall = viewModel::installUpdate,
-        onDismiss = viewModel::dismissUpdateDialog
-    )
+    if (isAutoUpdatePopupVisible) {
+        UpdateDialog(
+            updateInfo = updateInfo,
+            currentVersionName = viewModel.currentVersionName,
+            downloadState = downloadState,
+            onStartDownload = viewModel::startUpdateDownload,
+            onInstall = viewModel::installUpdate,
+            onDismiss = viewModel::dismissUpdateDialog
+        )
+    }
 
     // Modal: Create Playlist Dialog
     CreatePlaylistDialog(

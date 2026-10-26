@@ -442,10 +442,14 @@ class MusicViewModel(
     }
 
     private val appUpdateManager by lazy { AppUpdateManager(getApplication()) }
+    private val updatePrefs by lazy { getApplication<Application>().getSharedPreferences("app_update_prefs", Context.MODE_PRIVATE) }
 
     // In-App Update State
     private val _updateInfo = MutableStateFlow<AppUpdateInfo?>(null)
     val updateInfo: StateFlow<AppUpdateInfo?> = _updateInfo.asStateFlow()
+
+    private val _isAutoUpdatePopupVisible = MutableStateFlow(false)
+    val isAutoUpdatePopupVisible: StateFlow<Boolean> = _isAutoUpdatePopupVisible.asStateFlow()
 
     private val _downloadState = MutableStateFlow<UpdateDownloadState>(UpdateDownloadState.Idle)
     val downloadState: StateFlow<UpdateDownloadState> = _downloadState.asStateFlow()
@@ -474,8 +478,18 @@ class MusicViewModel(
                 if (update != null) {
                     _downloadState.value = UpdateDownloadState.Idle
                     _updateCheckFeedback.value = "New update available: v${update.latestVersionName}"
-                } else if (manual) {
-                    _updateCheckFeedback.value = "You are on the latest version (v${currentVersionName})!"
+
+                    val dismissed = updatePrefs.getString("dismissed_update_version", null)
+                    val lastInstalled = updatePrefs.getString("last_installed_update_version", null)
+
+                    // Never show recurring blocking popup if user already installed or dismissed this version
+                    val isAlreadyHandled = (update.latestVersionName == dismissed || update.latestVersionName == lastInstalled)
+                    _isAutoUpdatePopupVisible.value = manual || !isAlreadyHandled
+                } else {
+                    _isAutoUpdatePopupVisible.value = false
+                    if (manual) {
+                        _updateCheckFeedback.value = "You are on the latest version (v${currentVersionName})!"
+                    }
                 }
             } catch (e: Exception) {
                 if (manual) {
@@ -497,6 +511,11 @@ class MusicViewModel(
     }
 
     fun installUpdate(apkPath: String) {
+        val current = _updateInfo.value
+        if (current != null) {
+            updatePrefs.edit().putString("last_installed_update_version", current.latestVersionName).apply()
+        }
+        _isAutoUpdatePopupVisible.value = false
         val result = appUpdateManager.installUpdate(apkPath)
         if (result.isFailure) {
             _downloadState.value = UpdateDownloadState.Error(
@@ -506,7 +525,11 @@ class MusicViewModel(
     }
 
     fun dismissUpdateDialog() {
-        _updateInfo.value = null
+        _isAutoUpdatePopupVisible.value = false
+        val current = _updateInfo.value
+        if (current != null) {
+            updatePrefs.edit().putString("dismissed_update_version", current.latestVersionName).apply()
+        }
         _downloadState.value = UpdateDownloadState.Idle
     }
 

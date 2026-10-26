@@ -211,13 +211,21 @@ class AppUpdateManager(private val context: Context) {
         currentCode: Long,
         latestCode: Long
     ): Boolean {
+        val cleanCurrent = currentName.trim().removePrefix("v").removePrefix("V")
+        val cleanLatest = latestName.trim().removePrefix("v").removePrefix("V")
+
+        // Exact match -> definitely not newer!
+        if (cleanCurrent.equals(cleanLatest, ignoreCase = true)) {
+            return false
+        }
+
         if (latestCode > 0 && currentCode > 0 && latestCode != currentCode) {
             return latestCode > currentCode
         }
 
         // Compare semantic version components
-        val currentParts = currentName.split(Regex("[^0-9]+")).filter { it.isNotBlank() }.mapNotNull { it.toIntOrNull() }
-        val latestParts = latestName.split(Regex("[^0-9]+")).filter { it.isNotBlank() }.mapNotNull { it.toIntOrNull() }
+        val currentParts = cleanCurrent.split(Regex("[^0-9]+")).filter { it.isNotBlank() }.mapNotNull { it.toIntOrNull() }
+        val latestParts = cleanLatest.split(Regex("[^0-9]+")).filter { it.isNotBlank() }.mapNotNull { it.toIntOrNull() }
 
         val maxLen = maxOf(currentParts.size, latestParts.size)
         for (i in 0 until maxLen) {
