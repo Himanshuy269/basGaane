@@ -61,7 +61,6 @@ import com.example.basgaane.ui.common.EqualizerBars
 import com.example.basgaane.ui.common.LiquidCrystalBackground
 import com.example.basgaane.ui.common.crystalGlassCard
 import com.example.basgaane.ui.common.crystalPill
-import com.example.basgaane.ui.home.HomeTabsCapsule
 import com.example.basgaane.ui.theme.PrismBlue
 import com.example.basgaane.ui.theme.PrismCyan
 import com.example.basgaane.ui.theme.PrismEmerald
@@ -118,14 +117,6 @@ fun OnlineMusicScreen(
         ) {
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Navigation capsule
-            if (onTabSelected != null) {
-                HomeTabsCapsule(
-                    selectedTab = selectedTab,
-                    onTabSelected = onTabSelected
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-            }
 
             // Header Section
             Row(
@@ -338,7 +329,7 @@ fun OnlineMusicScreen(
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 96.dp),
+                        contentPadding = PaddingValues(bottom = 150.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         itemsIndexed(

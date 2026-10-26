@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import com.example.basgaane.domain.model.Playlist
 import com.example.basgaane.viewmodel.HomeTab
 import com.example.basgaane.ui.common.LiquidCrystalBackground
-import com.example.basgaane.ui.home.HomeTabsCapsule
 
 /**
  * Main Playlists Screen displaying the list of created playlists with option to create new ones.
@@ -38,14 +37,6 @@ fun PlaylistsScreen(
         ) {
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Navigation capsule if tabs are provided
-            if (onTabSelected != null) {
-                HomeTabsCapsule(
-                    selectedTab = selectedTab,
-                    onTabSelected = onTabSelected
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-            }
 
             // Header Action Bar
             PlaylistsHeader(
@@ -63,7 +54,7 @@ fun PlaylistsScreen(
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 90.dp)
+                    contentPadding = PaddingValues(bottom = 150.dp)
                 ) {
                     items(
                         items = playlists,

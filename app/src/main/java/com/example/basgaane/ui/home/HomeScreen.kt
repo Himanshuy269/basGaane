@@ -102,7 +102,7 @@ fun HomeScreen(
                 text = { Text("Add Music", fontWeight = FontWeight.Bold, color = TextPrimary) },
                 modifier = Modifier
                     .navigationBarsPadding()
-                    .padding(bottom = if (currentSong != null) 76.dp else 16.dp)
+                    .padding(bottom = if (currentSong != null) 144.dp else 80.dp)
                     .crystalPill(shape = RoundedCornerShape(20.dp), isActive = true)
             )
         },
@@ -190,13 +190,6 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 
-                // Crystal Nav Tabs Capsule
-                HomeTabsCapsule(
-                    selectedTab = selectedTab,
-                    onTabSelected = onTabSelected
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 // Online Stream Highlight Banner
                 Box(

@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import com.example.basgaane.domain.model.Song
 import com.example.basgaane.viewmodel.HomeTab
 import com.example.basgaane.ui.common.LiquidCrystalBackground
-import com.example.basgaane.ui.home.HomeTabsCapsule
 import com.example.basgaane.ui.theme.PrismCyan
 import com.example.basgaane.ui.theme.TextPrimary
 import com.example.basgaane.ui.theme.TextTertiary
@@ -56,14 +55,6 @@ fun SearchScreen(
         ) {
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Navigation capsule if tabs are provided
-            if (onTabSelected != null) {
-                HomeTabsCapsule(
-                    selectedTab = selectedTab,
-                    onTabSelected = onTabSelected
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-            }
 
             // Title
             Text(
@@ -120,7 +111,7 @@ fun SearchScreen(
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(bottom = 90.dp)
+                    contentPadding = PaddingValues(bottom = 150.dp)
                 ) {
                     itemsIndexed(
                         items = filteredSongs,

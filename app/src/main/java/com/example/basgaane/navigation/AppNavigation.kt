@@ -1,7 +1,9 @@
 package com.example.basgaane.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Snackbar
@@ -19,12 +21,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.basgaane.viewmodel.HomeTab
 import com.example.basgaane.viewmodel.MusicViewModel
 import com.example.basgaane.ui.common.AddMusicDialog
 import com.example.basgaane.ui.common.AddToPlaylistDialog
+import com.example.basgaane.ui.common.AppBottomNavigationBar
 import com.example.basgaane.ui.common.AppUpdateSectionDialog
 import com.example.basgaane.ui.common.CreatePlaylistDialog
 import com.example.basgaane.ui.common.EditProfileDialog
@@ -249,10 +253,21 @@ fun AppNavigation(
             }
         }
 
-        // Persistent Docked MiniPlayer
-        Box(
+        // Persistent Dock: MiniPlayer + Bottom Navigation Bar
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+        val isTopLevelDestination = currentRoute in listOf(
+            NavigationRoutes.HOME,
+            NavigationRoutes.ONLINE,
+            NavigationRoutes.SEARCH,
+            NavigationRoutes.PLAYLISTS,
+            null
+        )
+
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                .fillMaxWidth()
                 .navigationBarsPadding()
         ) {
             MiniPlayer(
@@ -264,6 +279,13 @@ fun AppNavigation(
                 onSkipNext = viewModel::skipNext,
                 onClick = viewModel::showFullPlayer
             )
+
+            if (isTopLevelDestination) {
+                AppBottomNavigationBar(
+                    selectedTab = selectedTab,
+                    onTabSelected = onTabSelected
+                )
+            }
         }
 
         // Global Snackbar Host
