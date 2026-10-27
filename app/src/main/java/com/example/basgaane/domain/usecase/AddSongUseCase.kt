@@ -10,6 +10,10 @@ import com.example.basgaane.domain.repository.MusicRepository
 class AddSongUseCase(
     private val repository: MusicRepository
 ) {
+    suspend operator fun invoke(song: Song): Result<Song> {
+        return repository.addSong(song)
+    }
+
     suspend operator fun invoke(
         title: String,
         artist: String,

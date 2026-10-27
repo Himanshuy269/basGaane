@@ -45,6 +45,8 @@ fun PlaylistDetailScreen(
         calculatePlaylistStats(playlistSongs)
     }
 
+    val isLikedPlaylist = playlist.id == "liked_songs_playlist" || playlist.name.equals("Liked Songs", ignoreCase = true)
+
     LiquidCrystalBackground(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -56,7 +58,8 @@ fun PlaylistDetailScreen(
             // Top Navigation Bar
             PlaylistDetailTopBar(
                 onBack = onBack,
-                onDeletePlaylist = onDeletePlaylist
+                onDeletePlaylist = onDeletePlaylist,
+                canDelete = !isLikedPlaylist
             )
 
             Spacer(modifier = Modifier.height(16.dp))

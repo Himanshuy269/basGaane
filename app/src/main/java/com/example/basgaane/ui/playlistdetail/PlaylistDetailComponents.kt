@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
@@ -74,6 +75,7 @@ import com.example.basgaane.ui.theme.TextTertiary
 fun PlaylistDetailTopBar(
     onBack: () -> Unit,
     onDeletePlaylist: () -> Unit,
+    canDelete: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var showPlaylistMenu by remember { mutableStateOf(false) }
@@ -103,40 +105,44 @@ fun PlaylistDetailTopBar(
             color = TextSecondary
         )
 
-        Box {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .crystalPill(shape = CircleShape, isActive = false, onClick = { showPlaylistMenu = true }),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Options",
-                    tint = TextPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+        if (canDelete) {
+            Box {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .crystalPill(shape = CircleShape, isActive = false, onClick = { showPlaylistMenu = true }),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Options",
+                        tint = TextPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
 
-            DropdownMenu(
-                expanded = showPlaylistMenu,
-                onDismissRequest = { showPlaylistMenu = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Delete Playlist", color = NeonPink) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = null,
-                            tint = NeonPink
-                        )
-                    },
-                    onClick = {
-                        showPlaylistMenu = false
-                        onDeletePlaylist()
-                    }
-                )
+                DropdownMenu(
+                    expanded = showPlaylistMenu,
+                    onDismissRequest = { showPlaylistMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Delete Playlist", color = NeonPink) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = NeonPink
+                            )
+                        },
+                        onClick = {
+                            showPlaylistMenu = false
+                            onDeletePlaylist()
+                        }
+                    )
+                }
             }
+        } else {
+            Spacer(modifier = Modifier.size(40.dp))
         }
     }
 }
@@ -151,6 +157,8 @@ fun PlaylistDetailHeaderCard(
     totalDurationMs: Long,
     modifier: Modifier = Modifier
 ) {
+    val isLikedPlaylist = playlist.id == "liked_songs_playlist" || playlist.name.equals("Liked Songs", ignoreCase = true)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -163,25 +171,38 @@ fun PlaylistDetailHeaderCard(
                 .size(90.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(
-                    Brush.linearGradient(
-                        listOf(PrismViolet, PrismCyan)
-                    )
+                    if (isLikedPlaylist) {
+                        Brush.linearGradient(listOf(PrismMagenta, PrismViolet))
+                    } else {
+                        Brush.linearGradient(listOf(PrismViolet, PrismCyan))
+                    }
                 )
                 .border(
                     width = 1.dp,
-                    brush = Brush.linearGradient(
-                        listOf(PrismCyan, PrismMagenta)
-                    ),
+                    brush = if (isLikedPlaylist) {
+                        Brush.linearGradient(listOf(PrismMagenta, Color.White.copy(alpha = 0.6f)))
+                    } else {
+                        Brush.linearGradient(listOf(PrismCyan, PrismMagenta))
+                    },
                     shape = RoundedCornerShape(16.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.app_logo),
-                contentDescription = null,
-                modifier = Modifier.size(56.dp),
-                contentScale = ContentScale.Fit
-            )
+            if (isLikedPlaylist) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Liked Songs",
+                    tint = Color.White,
+                    modifier = Modifier.size(44.dp)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.app_logo),
+                    contentDescription = null,
+                    modifier = Modifier.size(56.dp),
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(16.dp))

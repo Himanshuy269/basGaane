@@ -86,6 +86,8 @@ fun AppNavigation(
     val isSearchingOnline by viewModel.isSearchingOnline.collectAsState()
     val resolvingOnlineSongId by viewModel.resolvingOnlineSongId.collectAsState()
     val selectedOnlineGenre by viewModel.selectedOnlineGenre.collectAsState()
+    val likedSongIds by viewModel.likedSongIds.collectAsState()
+    val isSaveOnlinePlaylistDialogOpen by viewModel.isSaveOnlinePlaylistDialogOpen.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -182,12 +184,16 @@ fun AppNavigation(
                     selectedGenre = selectedOnlineGenre,
                     onSelectGenre = viewModel::selectOnlineGenre,
                     onlineSongs = onlineSearchResults,
+                    likedSongIds = likedSongIds,
+                    onToggleLike = viewModel::toggleLikeOnlineSong,
                     isSearching = isSearchingOnline,
                     resolvingSongId = resolvingOnlineSongId,
                     currentSong = currentSong,
                     isPlaying = isPlaying,
                     onSongClick = viewModel::playOnlineSong,
-                    onAddToPlaylistClick = viewModel::openAddToPlaylistDialog
+                    onAddToPlaylistClick = viewModel::openAddToPlaylistDialog,
+                    onCreatePlaylistClick = viewModel::openCreatePlaylistDialog,
+                    onSaveResultsAsPlaylist = viewModel::openSaveOnlinePlaylistDialog
                 )
             }
 
@@ -372,6 +378,17 @@ fun AppNavigation(
         }
     )
 
+    // Modal: Save Online Results as Playlist Dialog
+    CreatePlaylistDialog(
+        isOpen = isSaveOnlinePlaylistDialogOpen,
+        initialName = "${selectedOnlineGenre.replaceFirstChar { it.uppercase() }} Stream",
+        titleText = "Save Online Tracks as Playlist",
+        onDismiss = viewModel::closeSaveOnlinePlaylistDialog,
+        onCreate = { name, desc ->
+            viewModel.saveOnlineResultsAsPlaylist(name, desc)
+        }
+    )
+
     // Modal: Add Song To Playlist Dialog
     AddToPlaylistDialog(
         song = songForAddToPlaylist,
@@ -395,6 +412,8 @@ fun AppNavigation(
             durationMs = playerState.durationMs,
             isShuffle = playerState.isShuffleEnabled,
             repeatMode = playerState.repeatMode,
+            isLiked = playerState.currentSong?.id?.let { likedSongIds.contains(it) } == true,
+            onToggleLike = { playerState.currentSong?.let { viewModel.toggleLikeSong(it) } },
             onPlayPause = viewModel::togglePlayPause,
             onSeek = viewModel::seekTo,
             onSkipNext = viewModel::skipNext,

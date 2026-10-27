@@ -46,13 +46,15 @@ import com.example.basgaane.ui.theme.TextTertiary
 @Composable
 fun CreatePlaylistDialog(
     isOpen: Boolean,
+    initialName: String = "",
+    titleText: String = "Create Playlist",
     onDismiss: () -> Unit,
     onCreate: (name: String, description: String) -> Unit
 ) {
     if (!isOpen) return
 
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var name by remember(isOpen, initialName) { mutableStateOf(initialName) }
+    var description by remember(isOpen) { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -96,7 +98,7 @@ fun CreatePlaylistDialog(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Create Playlist",
+                    text = titleText,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = TextPrimary
                 )

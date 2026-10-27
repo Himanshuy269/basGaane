@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Person
@@ -177,25 +179,55 @@ fun VinylDisc(
 }
 
 /**
- * Track title, artist name, and friend contributor attribution pill.
+ * Track title, artist name, like button, and contributor attribution pill.
  */
 @Composable
 fun PlayerTrackInfo(
     song: Song,
+    isLiked: Boolean = false,
+    onToggleLike: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = song.title,
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            color = TextPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (onToggleLike != null) {
+                Spacer(modifier = Modifier.size(40.dp))
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = song.title,
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            if (onToggleLike != null) {
+                IconButton(
+                    onClick = onToggleLike,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = if (isLiked) "Unlike" else "Like",
+                        tint = if (isLiked) PrismMagenta else TextTertiary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(6.dp))
 

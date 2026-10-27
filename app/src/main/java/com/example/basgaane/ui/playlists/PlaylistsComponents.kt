@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -156,6 +157,7 @@ fun PlaylistCard(
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    val isLikedPlaylist = playlist.id == "liked_songs_playlist" || playlist.name.equals("Liked Songs", ignoreCase = true)
 
     Box(
         modifier = modifier
@@ -176,25 +178,38 @@ fun PlaylistCard(
                     .size(60.dp)
                     .clip(CrystalCoverShape)
                     .background(
-                        Brush.linearGradient(
-                            listOf(PrismViolet, PrismCyan)
-                        )
+                        if (isLikedPlaylist) {
+                            Brush.linearGradient(listOf(PrismMagenta, PrismViolet))
+                        } else {
+                            Brush.linearGradient(listOf(PrismViolet, PrismCyan))
+                        }
                     )
                     .border(
                         width = 1.dp,
-                        brush = Brush.linearGradient(
-                            listOf(PrismCyan, PrismMagenta)
-                        ),
+                        brush = if (isLikedPlaylist) {
+                            Brush.linearGradient(listOf(PrismMagenta, Color.White.copy(alpha = 0.6f)))
+                        } else {
+                            Brush.linearGradient(listOf(PrismCyan, PrismMagenta))
+                        },
                         shape = RoundedCornerShape(14.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.app_logo),
-                    contentDescription = null,
-                    modifier = Modifier.size(38.dp),
-                    contentScale = ContentScale.Fit
-                )
+                if (isLikedPlaylist) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Liked Songs",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.app_logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(38.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -228,33 +243,35 @@ fun PlaylistCard(
                 )
             }
 
-            Box {
-                IconButton(
-                    onClick = { showMenu = true },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = TextTertiary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+            if (!isLikedPlaylist) {
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = TextTertiary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
 
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Delete Playlist", color = NeonPink) },
-                        leadingIcon = {
-                            Icon(Icons.Default.Delete, contentDescription = null, tint = NeonPink)
-                        },
-                        onClick = {
-                            showMenu = false
-                            onDelete()
-                        }
-                    )
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Delete Playlist", color = NeonPink) },
+                            leadingIcon = {
+                                Icon(Icons.Default.Delete, contentDescription = null, tint = NeonPink)
+                            },
+                            onClick = {
+                                showMenu = false
+                                onDelete()
+                            }
+                        )
+                    }
                 }
             }
 

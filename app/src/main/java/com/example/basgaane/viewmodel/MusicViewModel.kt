@@ -12,6 +12,7 @@ import com.example.basgaane.core.update.AppUpdateInfo
 import com.example.basgaane.core.update.AppUpdateManager
 import com.example.basgaane.core.update.UpdateDownloadState
 import com.example.basgaane.core.utils.AudioMetadataHelper
+import com.example.basgaane.data.datasource.local.LocalPlaylistDataSource
 import com.example.basgaane.data.remote.model.JioSaavnSongItem
 import com.example.basgaane.data.remote.repository.OnlineMusicRepository
 import com.example.basgaane.data.repository.MusicRepositoryImpl
@@ -217,6 +218,13 @@ class MusicViewModel(
         initialValue = emptyList()
     )
 
+    // Liked Songs Playlist & IDs state
+    val likedSongIds: StateFlow<Set<String>> = playlists.map { list ->
+        list.find {
+            it.id == LocalPlaylistDataSource.LIKED_SONGS_PLAYLIST_ID || it.name.equals("Liked Songs", ignoreCase = true)
+        }?.songIds?.toSet() ?: emptySet()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     private val _selectedPlaylist = MutableStateFlow<Playlist?>(null)
     val selectedPlaylist: StateFlow<Playlist?> = _selectedPlaylist.asStateFlow()
 
@@ -226,6 +234,9 @@ class MusicViewModel(
 
     private val _isCreatePlaylistDialogOpen = MutableStateFlow(false)
     val isCreatePlaylistDialogOpen: StateFlow<Boolean> = _isCreatePlaylistDialogOpen.asStateFlow()
+
+    private val _isSaveOnlinePlaylistDialogOpen = MutableStateFlow(false)
+    val isSaveOnlinePlaylistDialogOpen: StateFlow<Boolean> = _isSaveOnlinePlaylistDialogOpen.asStateFlow()
 
     private val _songForAddToPlaylist = MutableStateFlow<Song?>(null)
     val songForAddToPlaylist: StateFlow<Song?> = _songForAddToPlaylist.asStateFlow()
@@ -444,13 +455,132 @@ class MusicViewModel(
         _isCreatePlaylistDialogOpen.value = false
     }
 
+    fun openSaveOnlinePlaylistDialog() {
+        _isSaveOnlinePlaylistDialogOpen.value = true
+    }
+
+    fun closeSaveOnlinePlaylistDialog() {
+        _isSaveOnlinePlaylistDialogOpen.value = false
+    }
+
     fun createPlaylist(name: String, description: String = "") {
         viewModelScope.launch {
-            val result = createPlaylistUseCase(name, description)
+            val pendingSong = _songForAddToPlaylist.value
+            if (pendingSong != null) {
+                addSongUseCase(pendingSong)
+            }
+            val result = createPlaylistUseCase(name.trim(), description.trim())
             if (result.isSuccess) {
-                _userMessage.value = "✓ Playlist '${result.getOrNull()?.name}' created!"
+                val createdPl = result.getOrNull()
+                if (createdPl != null && pendingSong != null) {
+                    addSongToPlaylist(createdPl, pendingSong)
+                    _userMessage.value = "✓ Playlist '${createdPl.name}' created with '${pendingSong.title}'!"
+                } else {
+                    _userMessage.value = "✓ Playlist '${createdPl?.name ?: name}' created!"
+                }
+                _songForAddToPlaylist.value = null
             } else {
                 _userMessage.value = "⚠️ Failed to create playlist: ${result.exceptionOrNull()?.localizedMessage}"
+            }
+            _isCreatePlaylistDialogOpen.value = false
+        }
+    }
+
+    fun saveOnlineResultsAsPlaylist(name: String, description: String = "") {
+        val onlineList = _onlineSearchResults.value
+        if (onlineList.isEmpty()) {
+            _userMessage.value = "No online songs to save"
+            _isSaveOnlinePlaylistDialogOpen.value = false
+            return
+        }
+        viewModelScope.launch {
+            val domainSongs = onlineList.map { item ->
+                Song(
+                    id = item.id ?: UUID.randomUUID().toString(),
+                    title = item.cleanTitle,
+                    artist = item.cleanArtist,
+                    audioUrl = item.encryptedMediaUrl ?: "",
+                    coverUrl = item.hdCoverUrl,
+                    durationMs = item.durationMs,
+                    isLocal = false,
+                    addedBy = "Online Stream"
+                )
+            }
+            // Save all into local store so playlists can resolve them
+            domainSongs.forEach { addSongUseCase(it) }
+
+            val cleanName = name.trim().ifBlank { "${_selectedOnlineGenre.value} Stream" }
+            val cleanDesc = description.trim().ifBlank { "Curated from online stream (${domainSongs.size} tracks)" }
+            val result = createPlaylistUseCase(cleanName, cleanDesc)
+            result.onSuccess { newPl ->
+                domainSongs.forEach { song ->
+                    addSongToPlaylistUseCase(newPl.id, song.id)
+                }
+                _userMessage.value = "✓ Created playlist '$cleanName' with ${domainSongs.size} tracks!"
+            }.onFailure {
+                _userMessage.value = "Failed to create playlist: ${it.localizedMessage}"
+            }
+            _isSaveOnlinePlaylistDialogOpen.value = false
+        }
+    }
+
+    fun toggleLikeOnlineSong(item: JioSaavnSongItem) {
+        val songId = item.id ?: item.cleanTitle.hashCode().toString()
+        val domainSong = Song(
+            id = songId,
+            title = item.cleanTitle,
+            artist = item.cleanArtist,
+            audioUrl = item.encryptedMediaUrl ?: "",
+            coverUrl = item.hdCoverUrl,
+            durationMs = item.durationMs,
+            isLocal = false,
+            addedBy = "Online Stream"
+        )
+        viewModelScope.launch {
+            addSongUseCase(domainSong)
+            val currentPlaylists = playlists.value
+            val likedPl = currentPlaylists.find {
+                it.id == LocalPlaylistDataSource.LIKED_SONGS_PLAYLIST_ID || it.name.equals("Liked Songs", ignoreCase = true)
+            }
+            if (likedPl != null) {
+                if (likedPl.songIds.contains(songId)) {
+                    removeSongFromPlaylist(likedPl.id, songId)
+                    _userMessage.value = "Removed '${item.cleanTitle}' from Liked Songs"
+                } else {
+                    addSongToPlaylist(likedPl, domainSong)
+                    _userMessage.value = "❤️ Added '${item.cleanTitle}' to Liked Songs"
+                }
+            } else {
+                val createResult = createPlaylistUseCase("Liked Songs", "Your favorite online & library music")
+                createResult.onSuccess { newPl ->
+                    addSongToPlaylist(newPl, domainSong)
+                    _userMessage.value = "❤️ Added '${item.cleanTitle}' to Liked Songs"
+                }
+            }
+        }
+    }
+
+    fun toggleLikeSong(song: Song) {
+        viewModelScope.launch {
+            addSongUseCase(song)
+            val currentPlaylists = playlists.value
+            val likedPl = currentPlaylists.find {
+                it.id == LocalPlaylistDataSource.LIKED_SONGS_PLAYLIST_ID || it.name.equals("Liked Songs", ignoreCase = true)
+            }
+            if (likedPl != null) {
+                if (likedPl.songIds.contains(song.id)) {
+                    removeSongFromPlaylist(likedPl.id, song.id)
+                    _userMessage.value = "Removed '${song.title}' from Liked Songs"
+                } else {
+                    addSongToPlaylist(likedPl, song)
+                    _userMessage.value = "❤️ Added '${song.title}' to Liked Songs"
+                }
+            } else {
+                val createResult = createPlaylistUseCase("Liked Songs", "Your favorite online & library music")
+                createResult.onSuccess { newPl ->
+                    addSongToPlaylist(newPl, song)
+                    _userMessage.value = "❤️ Added '${song.title}' to Liked Songs"
+                }
             }
         }
     }
@@ -477,6 +607,8 @@ class MusicViewModel(
 
     fun addSongToPlaylist(playlist: Playlist, song: Song) {
         viewModelScope.launch {
+            // Ensure song is in local cache so playlist detail can map it
+            addSongUseCase(song)
             val result = addSongToPlaylistUseCase(playlist.id, song.id)
             if (result.isSuccess) {
                 _userMessage.value = "✓ Added '${song.title}' to '${playlist.name}'"
@@ -505,8 +637,24 @@ class MusicViewModel(
     fun playPlaylist(songs: List<Song>, startSong: Song? = null) {
         if (songs.isEmpty()) return
         val targetSong = startSong ?: songs.first()
-        playerController.playSong(targetSong, songs)
-        showFullPlayer()
+
+        if (targetSong.addedBy == "Online Stream" && (!targetSong.audioUrl.startsWith("http") || !targetSong.audioUrl.contains(".mp4"))) {
+            viewModelScope.launch {
+                val token = targetSong.audioUrl
+                val result = onlineMusicRepository.resolveStreamUrl(token)
+                result.onSuccess { streamUrl ->
+                    val playableTarget = targetSong.copy(audioUrl = streamUrl)
+                    val updatedSongs = songs.map { if (it.id == targetSong.id) playableTarget else it }
+                    playerController.playSong(playableTarget, updatedSongs)
+                    showFullPlayer()
+                }.onFailure { err ->
+                    _userMessage.value = "Failed to stream: ${err.localizedMessage}"
+                }
+            }
+        } else {
+            playerController.playSong(targetSong, songs)
+            showFullPlayer()
+        }
     }
 
     fun openAddMusicDialog() {

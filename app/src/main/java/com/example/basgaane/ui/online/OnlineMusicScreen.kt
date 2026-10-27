@@ -28,7 +28,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
@@ -64,6 +67,7 @@ import com.example.basgaane.ui.common.crystalPill
 import com.example.basgaane.ui.theme.PrismBlue
 import com.example.basgaane.ui.theme.PrismCyan
 import com.example.basgaane.ui.theme.PrismEmerald
+import com.example.basgaane.ui.theme.PrismMagenta
 import com.example.basgaane.ui.theme.PrismViolet
 import com.example.basgaane.ui.theme.TextPrimary
 import com.example.basgaane.ui.theme.TextSecondary
@@ -88,8 +92,12 @@ fun OnlineMusicScreen(
     resolvingSongId: String?,
     currentSong: Song?,
     isPlaying: Boolean,
+    likedSongIds: Set<String> = emptySet(),
     onSongClick: (JioSaavnSongItem) -> Unit,
+    onToggleLike: (JioSaavnSongItem) -> Unit = {},
     onAddToPlaylistClick: (Song) -> Unit,
+    onCreatePlaylistClick: () -> Unit = {},
+    onSaveResultsAsPlaylist: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -164,24 +172,53 @@ fun OnlineMusicScreen(
                     )
                 }
 
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(PrismCyan.copy(alpha = 0.15f), PrismViolet.copy(alpha = 0.15f))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .crystalPill(
+                                shape = RoundedCornerShape(12.dp),
+                                isActive = false,
+                                onClick = onCreatePlaylistClick
                             )
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Create Playlist",
+                                tint = PrismCyan,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Playlist",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = TextPrimary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(PrismCyan.copy(alpha = 0.15f), PrismViolet.copy(alpha = 0.15f))
+                                )
+                            )
+                            .border(1.dp, PrismCyan.copy(alpha = 0.35f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Language,
+                            contentDescription = "Online Music",
+                            tint = PrismCyan,
+                            modifier = Modifier.size(20.dp)
                         )
-                        .border(1.dp, PrismCyan.copy(alpha = 0.35f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Language,
-                        contentDescription = "Online Music",
-                        tint = PrismCyan,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    }
                 }
             }
 
@@ -327,6 +364,50 @@ fun OnlineMusicScreen(
                         )
                     }
                 } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${onlineSongs.size} tracks found",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = TextTertiary
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .crystalPill(
+                                    shape = RoundedCornerShape(10.dp),
+                                    isActive = false,
+                                    onClick = onSaveResultsAsPlaylist
+                                )
+                                .padding(horizontal = 9.dp, vertical = 4.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
+                                    contentDescription = null,
+                                    tint = PrismCyan,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Save as Playlist",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = TextPrimary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 150.dp),
@@ -336,17 +417,20 @@ fun OnlineMusicScreen(
                             items = onlineSongs,
                             key = { _, item -> item.id ?: item.cleanTitle }
                         ) { _, songItem ->
+                            val isLiked = likedSongIds.contains(songItem.id) || likedSongIds.contains(songItem.cleanTitle.hashCode().toString())
                             OnlineSongListItem(
                                 item = songItem,
                                 isCurrentlyPlaying = currentSong?.title == songItem.cleanTitle && isPlaying,
                                 isResolving = resolvingSongId == songItem.id,
+                                isLiked = isLiked,
                                 onPlayClick = { onSongClick(songItem) },
+                                onToggleLike = { onToggleLike(songItem) },
                                 onAddToPlaylist = {
                                     val domainSong = Song(
-                                        id = songItem.id ?: java.util.UUID.randomUUID().toString(),
+                                        id = songItem.id ?: songItem.cleanTitle.hashCode().toString(),
                                         title = songItem.cleanTitle,
                                         artist = songItem.cleanArtist,
-                                        audioUrl = "", // Populated during playback
+                                        audioUrl = songItem.encryptedMediaUrl ?: "",
                                         coverUrl = songItem.hdCoverUrl,
                                         durationMs = songItem.durationMs,
                                         isLocal = false,
@@ -371,7 +455,9 @@ fun OnlineSongListItem(
     item: JioSaavnSongItem,
     isCurrentlyPlaying: Boolean,
     isResolving: Boolean,
+    isLiked: Boolean,
     onPlayClick: () -> Unit,
+    onToggleLike: () -> Unit,
     onAddToPlaylist: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -466,7 +552,20 @@ fun OnlineSongListItem(
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+
+            // Like / Favorite Button
+            IconButton(
+                onClick = onToggleLike,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = if (isLiked) "Unlike" else "Like",
+                    tint = if (isLiked) PrismMagenta else TextSecondary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
 
             // Action Buttons: Add to Playlist & Play/Resolving Indicator
             IconButton(

@@ -44,6 +44,8 @@ fun FullPlayerSheet(
     durationMs: Long,
     isShuffle: Boolean,
     repeatMode: Int,
+    isLiked: Boolean = false,
+    onToggleLike: (() -> Unit)? = null,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSkipNext: () -> Unit,
@@ -109,7 +111,11 @@ fun FullPlayerSheet(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     // Song Title, Artist & Friend Attribution
-                    PlayerTrackInfo(song = song)
+                    PlayerTrackInfo(
+                        song = song,
+                        isLiked = isLiked,
+                        onToggleLike = onToggleLike
+                    )
 
                     Spacer(modifier = Modifier.height(28.dp))
 

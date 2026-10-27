@@ -52,6 +52,24 @@ class LocalPlaylistDataSource(context: Context) {
             prefs.edit().putBoolean(KEY_INITIALIZED, true).apply()
         }
 
+        // Ensure Liked Songs playlist is always present and pinned at the top
+        val likedIndex = list.indexOfFirst {
+            it.id == LIKED_SONGS_PLAYLIST_ID || it.name.equals("Liked Songs", ignoreCase = true)
+        }
+        if (likedIndex == -1) {
+            val likedPlaylist = Playlist(
+                id = LIKED_SONGS_PLAYLIST_ID,
+                name = "Liked Songs",
+                description = "Your favorite online & library music",
+                songIds = emptyList()
+            )
+            list.add(0, likedPlaylist)
+            persist(list)
+        } else if (likedIndex > 0) {
+            val liked = list.removeAt(likedIndex)
+            list.add(0, liked)
+        }
+
         return list
     }
 
@@ -63,6 +81,7 @@ class LocalPlaylistDataSource(context: Context) {
     }
 
     fun deletePlaylist(playlistId: String) {
+        if (playlistId == LIKED_SONGS_PLAYLIST_ID) return // Protect Liked Songs playlist
         val current = getLocalPlaylists()
         current.removeAll { it.id == playlistId }
         persist(current)
@@ -113,6 +132,7 @@ class LocalPlaylistDataSource(context: Context) {
     }
 
     companion object {
+        const val LIKED_SONGS_PLAYLIST_ID = "liked_songs_playlist"
         private const val KEY_PLAYLISTS = "key_playlists_json"
         private const val KEY_INITIALIZED = "key_playlists_initialized"
 
