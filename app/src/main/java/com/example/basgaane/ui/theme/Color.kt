@@ -4,6 +4,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 
+// Noctra Minimal Dark & Lime Design System Tokens
+val NoctraLime = Color(0xFFD2F844)
+val NoctraLimeDark = Color(0xFF1E2812)
+val NoctraDark = Color(0xFF0C0E12)
+val NoctraSurface = Color(0xFF141720)
+val NoctraSurfaceElevated = Color(0xFF1C202C)
+val NoctraBorder = Color(0xFF222735)
+val NoctraChipInactive = Color(0xFF191D28)
+val NoctraTextPrimary = Color(0xFFFFFFFF)
+val NoctraTextSecondary = Color(0xFF8B92A2)
+val NoctraTextMuted = Color(0xFF5A6273)
+val NoctraTrackBar = Color(0xFF232838)
+
 // Prismatic / Iridescent Spectrum Colors
 val PrismCyan = Color(0xFF00F2FE)
 val PrismBlue = Color(0xFF4FACFE)

@@ -323,9 +323,9 @@ fun PlayerProgressSlider(
             },
             valueRange = 0f..maxDuration,
             colors = SliderDefaults.colors(
-                thumbColor = PrismCyan,
-                activeTrackColor = PrismCyan,
-                inactiveTrackColor = PlayerTrack
+                thumbColor = com.example.basgaane.ui.theme.NoctraLime,
+                activeTrackColor = com.example.basgaane.ui.theme.NoctraLime,
+                inactiveTrackColor = Color(0xFF242A38)
             ),
             modifier = Modifier.fillMaxWidth()
         )
@@ -396,34 +396,23 @@ fun PlayerPlaybackControlsRow(
             )
         }
 
-        // Play / Pause glowing center button
+        // Play / Pause center button (solid lime circle with black icon)
         Box(
             modifier = Modifier
-                .size(70.dp)
+                .size(68.dp)
                 .clip(CircleShape)
-                .background(
-                    Brush.linearGradient(
-                        listOf(PrismViolet, PrismCyan)
-                    )
-                )
-                .border(
-                    width = 2.dp,
-                    brush = Brush.linearGradient(
-                        listOf(PrismCyan, PrismMagenta)
-                    ),
-                    shape = CircleShape
-                ),
+                .background(com.example.basgaane.ui.theme.NoctraLime),
             contentAlignment = Alignment.Center
         ) {
             IconButton(
                 onClick = onPlayPause,
-                modifier = Modifier.size(70.dp)
+                modifier = Modifier.size(68.dp)
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isPlaying) "Pause" else "Play",
-                    tint = Color.White,
-                    modifier = Modifier.size(38.dp)
+                    tint = Color(0xFF0C0E12),
+                    modifier = Modifier.size(36.dp)
                 )
             }
         }

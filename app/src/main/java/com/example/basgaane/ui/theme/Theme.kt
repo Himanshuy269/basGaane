@@ -57,39 +57,35 @@ data class BasGaaneColors(
 
 val DarkBasGaaneColors = BasGaaneColors(
     isDark = true,
-    background = Color(0xFF07090E),
-    surface = Color(0xFF111522),
-    surfaceVariant = Color(0xFF192033),
-    surfaceLightDark = Color(0xFF222B42),
-    textPrimary = Color(0xFFF8FAFC),
-    textSecondary = Color(0xFF94A3B8),
-    textTertiary = Color(0xFF64748B),
-    glassFill = Color(0xE6121727),
-    glassFillLight = Color(0xB81B2236),
-    glassCard = Color(0xDB131828),
-    glassCardActive = Color(0xF0182035),
-    playerTrack = Color(0xFF232D42),
-    cardBackgroundStart = Color(0xEA121626),
-    cardBackgroundEnd = Color(0xD00C101C),
-    cardBackgroundActiveStart = Color(0xF0182035),
-    cardBackgroundActiveEnd = Color(0xE0121727),
-    pillInactiveBgStart = Color(0x99171D2F),
-    pillInactiveBgEnd = Color(0x660E121E),
+    background = NoctraDark,
+    surface = NoctraSurface,
+    surfaceVariant = NoctraSurfaceElevated,
+    surfaceLightDark = Color(0xFF202636),
+    textPrimary = Color(0xFFFFFFFF),
+    textSecondary = NoctraTextSecondary,
+    textTertiary = NoctraTextMuted,
+    glassFill = Color(0xE6141720),
+    glassFillLight = Color(0xB81C202C),
+    glassCard = Color(0xF2141720),
+    glassCardActive = Color(0xF01C202C),
+    playerTrack = NoctraTrackBar,
+    cardBackgroundStart = Color(0xF2141720),
+    cardBackgroundEnd = Color(0xE610131A),
+    cardBackgroundActiveStart = Color(0xF01C202C),
+    cardBackgroundActiveEnd = Color(0xE0141720),
+    pillInactiveBgStart = Color(0xFF191D28),
+    pillInactiveBgEnd = Color(0xFF151821),
     borderSubtle = listOf(
-        Color(0x4500F2FE),
-        Color(0x258B5CF6),
-        Color(0x35FF2A85),
-        Color(0x1EFFFFFF)
+        NoctraBorder,
+        NoctraBorder
     ),
     borderActive = listOf(
-        Color(0xFF00F2FE),
-        Color(0xFF8B5CF6),
-        Color(0xFFFF2A85),
-        Color(0xFF00F2FE)
+        NoctraLime,
+        NoctraLime
     ),
-    inputContainerFocused = Color(0x600C101C),
-    inputContainerUnfocused = Color(0x400C101C),
-    inputBorderUnfocused = Color(0x33FFFFFF)
+    inputContainerFocused = Color(0xFF141720),
+    inputContainerUnfocused = Color(0xFF141720),
+    inputBorderUnfocused = NoctraBorder
 )
 
 val LightBasGaaneColors = BasGaaneColors(

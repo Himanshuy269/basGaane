@@ -3,6 +3,7 @@ package com.example.basgaane.ui.playlistdetail
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -264,36 +265,32 @@ fun PlaylistDetailActionsRow(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .crystalPill(
-                    shape = RoundedCornerShape(16.dp),
-                    isActive = true,
-                    onClick = onPlayAll
-                )
+                .clip(RoundedCornerShape(16.dp))
+                .background(com.example.basgaane.ui.theme.NoctraLime)
+                .clickable { onPlayAll() }
                 .padding(vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color(0xFF0C0E12), modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Play All", fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text("Play All", fontWeight = FontWeight.Bold, color = Color(0xFF0C0E12))
             }
         }
 
         Box(
             modifier = Modifier
                 .weight(1f)
-                .crystalPill(
-                    shape = RoundedCornerShape(16.dp),
-                    isActive = false,
-                    onClick = onShufflePlay
-                )
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF191D28))
+                .clickable { onShufflePlay() }
                 .padding(vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Shuffle, contentDescription = null, tint = PrismCyan, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Shuffle, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Shuffle", fontWeight = FontWeight.Bold, color = PrismCyan)
+                Text("Shuffle", fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }

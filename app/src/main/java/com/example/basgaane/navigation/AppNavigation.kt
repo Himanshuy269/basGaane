@@ -185,6 +185,9 @@ fun AppNavigation(
                     onSelectGenre = viewModel::selectOnlineGenre,
                     onlineSongs = onlineSearchResults,
                     likedSongIds = likedSongIds,
+                    userName = userName,
+                    isUpdateAvailable = updateInfo != null,
+                    onOpenEditProfileDialog = viewModel::openEditProfileDialog,
                     onToggleLike = viewModel::toggleLikeOnlineSong,
                     isSearching = isSearchingOnline,
                     resolvingSongId = resolvingOnlineSongId,
@@ -207,6 +210,9 @@ fun AppNavigation(
                     filteredSongs = filteredSongs,
                     currentSong = currentSong,
                     isPlaying = isPlaying,
+                    userName = userName,
+                    isUpdateAvailable = updateInfo != null,
+                    onOpenEditProfileDialog = viewModel::openEditProfileDialog,
                     onSongClick = viewModel::playSong,
                     onAddToPlaylistClick = viewModel::openAddToPlaylistDialog,
                     onDeleteSong = viewModel::deleteSong,
@@ -224,6 +230,15 @@ fun AppNavigation(
                     },
                     onCreatePlaylistClick = viewModel::openCreatePlaylistDialog,
                     onDeletePlaylist = viewModel::deletePlaylist,
+                    onPlayPlaylist = { playlist ->
+                        val targetSongs = allSongs.filter { s -> playlist.songIds.contains(s.id) }
+                        if (targetSongs.isNotEmpty()) {
+                            viewModel.playPlaylist(targetSongs, null)
+                        }
+                    },
+                    userName = userName,
+                    isUpdateAvailable = updateInfo != null,
+                    onOpenEditProfileDialog = viewModel::openEditProfileDialog,
                     selectedTab = selectedTab,
                     onTabSelected = onTabSelected
                 )

@@ -45,8 +45,8 @@ fun LiquidCrystalBackground(
     val colors = LocalBasGaaneColors.current
     val infiniteTransition = rememberInfiniteTransition(label = "LiquidAuraPulse")
     val auraAlpha = infiniteTransition.animateFloat(
-        initialValue = if (colors.isDark) 0.18f else 0.10f,
-        targetValue = if (colors.isDark) 0.28f else 0.20f,
+        initialValue = if (colors.isDark) 0.02f else 0.10f,
+        targetValue = if (colors.isDark) 0.05f else 0.20f,
         animationSpec = infiniteRepeatable(
             animation = tween(4000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
