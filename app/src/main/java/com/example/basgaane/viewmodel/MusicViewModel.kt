@@ -28,6 +28,8 @@ import com.example.basgaane.domain.usecase.GetPlaylistsUseCase
 import com.example.basgaane.domain.usecase.GetSongsUseCase
 import com.example.basgaane.domain.usecase.RemoveSongFromPlaylistUseCase
 import com.example.basgaane.domain.usecase.SearchSongsUseCase
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -280,14 +282,37 @@ class MusicViewModel(
         playerController.onPlaybackEnded = {
             handleSongEnded()
         }
+        playerController.onPlaybackError = { error ->
+            handlePlaybackError(error)
+        }
+    }
+
+    private fun handlePlaybackError(error: Exception) {
+        if (isOnlinePlaybackActive) {
+            _userMessage.value = "Streaming error, playing next song..."
+            playNextOnlineSong()
+        } else {
+            _userMessage.value = "Unable to play audio file"
+        }
     }
 
     fun selectTab(tab: HomeTab) {
         _selectedTab.value = tab
     }
 
+    private var unifiedSearchJob: Job? = null
+    private var onlineSearchJob: Job? = null
+
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
+        unifiedSearchJob?.cancel()
+        val q = query.trim()
+        if (q.length >= 2) {
+            unifiedSearchJob = viewModelScope.launch {
+                delay(400)
+                performOnlineSearch(q)
+            }
+        }
     }
 
     fun onSearchFilterTagChanged(tag: String) {
@@ -296,6 +321,16 @@ class MusicViewModel(
 
     fun onOnlineSearchQueryChanged(query: String) {
         _onlineSearchQuery.value = query
+        onlineSearchJob?.cancel()
+        val q = query.trim()
+        if (q.isBlank()) {
+            performOnlineSearch("Trending Songs")
+        } else if (q.length >= 2) {
+            onlineSearchJob = viewModelScope.launch {
+                delay(400)
+                performOnlineSearch(q)
+            }
+        }
     }
 
     fun performOnlineSearch(query: String = _onlineSearchQuery.value) {
@@ -677,10 +712,33 @@ class MusicViewModel(
     fun playSong(song: Song, customQueue: List<Song>? = null) {
         if (song.isLocal || song.addedBy != "Online Stream") {
             isOnlinePlaybackActive = false
+            val queue = customQueue ?: filteredSongs.value
+            playerController.playSong(song, queue)
+            showFullPlayer()
+            return
         }
-        val queue = customQueue ?: filteredSongs.value
-        playerController.playSong(song, queue)
-        showFullPlayer()
+
+        // Online song playback - resolve stream URL token if needed
+        isOnlinePlaybackActive = true
+        activeOnlineType = song.artist.takeIf { it.isNotBlank() && it != "Unknown Artist" } ?: "Online Stream"
+
+        if (!song.audioUrl.startsWith("http") || !song.audioUrl.contains(".mp4")) {
+            viewModelScope.launch {
+                _resolvingOnlineSongId.value = song.id
+                val result = onlineMusicRepository.resolveStreamUrl(song.audioUrl)
+                _resolvingOnlineSongId.value = null
+                result.onSuccess { streamUrl ->
+                    val resolved = song.copy(audioUrl = streamUrl)
+                    playerController.playSong(resolved, listOf(resolved))
+                    showFullPlayer()
+                }.onFailure { err ->
+                    _userMessage.value = "Failed to stream: ${err.localizedMessage}"
+                }
+            }
+        } else {
+            playerController.playSong(song, listOf(song))
+            showFullPlayer()
+        }
     }
 
     fun togglePlayPause() {

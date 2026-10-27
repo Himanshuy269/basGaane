@@ -134,7 +134,7 @@ fun HomeScreen(
                 .background(NoctraDark)
                 .padding(innerPadding)
         ) {
-            // Global Header: Audio wave logo + "bacGaane" + Profile Avatar
+            // Global Header: Audio wave logo + "basGaane" + Profile Avatar
             BasGaaneTopBar(
                 userName = userName,
                 isUpdateAvailable = updateInfo != null,

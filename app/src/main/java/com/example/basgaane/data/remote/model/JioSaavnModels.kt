@@ -35,9 +35,20 @@ data class JioSaavnSongItem(
      */
     val cleanArtist: String
         get() {
-            val primaryArtist = moreInfo?.artistMap?.primaryArtists?.firstOrNull()?.name
-            if (!primaryArtist.isNullOrBlank()) {
-                return cleanHtml(primaryArtist)
+            val primaryArtists = moreInfo?.artistMap?.primaryArtists
+            if (!primaryArtists.isNullOrEmpty()) {
+                val names = primaryArtists.mapNotNull { it.name?.trim() }.filter { it.isNotEmpty() }
+                if (names.isNotEmpty()) {
+                    return cleanHtml(names.joinToString(", "))
+                }
+            }
+            val artists = moreInfo?.artistMap?.artists
+            if (!artists.isNullOrEmpty()) {
+                val singers = artists.filter { it.role == "singer" || it.role == "primary_artists" }
+                val names = singers.mapNotNull { it.name?.trim() }.filter { it.isNotEmpty() }
+                if (names.isNotEmpty()) {
+                    return cleanHtml(names.joinToString(", "))
+                }
             }
             // Subtitle often formatted as "Artist - Album"
             val sub = subtitle?.trim()
@@ -46,6 +57,14 @@ data class JioSaavnSongItem(
                 if (parts.isNotEmpty() && parts[0].isNotBlank()) {
                     return cleanHtml(parts[0].trim())
                 }
+            }
+            val music = moreInfo?.music?.trim()
+            if (!music.isNullOrBlank()) {
+                return cleanHtml(music)
+            }
+            val album = moreInfo?.album?.trim()
+            if (!album.isNullOrBlank()) {
+                return cleanHtml(album)
             }
             return "Unknown Artist"
         }
@@ -88,6 +107,7 @@ data class JioSaavnSongItem(
 data class JioSaavnMoreInfo(
     @SerializedName("duration") val duration: String? = null,
     @SerializedName("album") val album: String? = null,
+    @SerializedName("music") val music: String? = null,
     @SerializedName("encrypted_media_url") val encryptedMediaUrl: String? = null,
     @SerializedName("artistMap") val artistMap: JioSaavnArtistMap? = null
 )

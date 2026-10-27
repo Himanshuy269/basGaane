@@ -49,8 +49,12 @@ class OnlineMusicRepository {
      * Search songs online using keywords.
      */
     suspend fun searchSongs(query: String): Result<List<JioSaavnSongItem>> = withContext(Dispatchers.IO) {
+        val cleanQuery = query.trim()
+        if (cleanQuery.isBlank()) {
+            return@withContext Result.success(emptyList())
+        }
         try {
-            val response = apiService.searchSongs(query = query.trim())
+            val response = apiService.searchSongs(query = cleanQuery)
             val songs = response.results ?: emptyList()
             Result.success(songs.filter { !it.cleanTitle.isBlank() && !it.encryptedMediaUrl.isNullOrBlank() })
         } catch (e: Exception) {
@@ -60,17 +64,24 @@ class OnlineMusicRepository {
     }
 
     /**
-     * Resolves the direct 320kbps CloudFront streaming URL from the encrypted media token.
+     * Resolves the direct 320kbps CloudFront streaming URL from the encrypted media token,
+     * falling back to 160kbps if high bitrate is not provisioned for the track.
      */
     suspend fun resolveStreamUrl(encryptedMediaUrl: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.generateAuthToken(encryptedMediaUrl = encryptedMediaUrl)
+            // First try 320 kbps high fidelity
+            val response = apiService.generateAuthToken(encryptedMediaUrl = encryptedMediaUrl, bitrate = 320)
             val authUrl = response.authUrl
             if (!authUrl.isNullOrBlank()) {
-                Result.success(authUrl)
-            } else {
-                Result.failure(Exception("Stream URL could not be generated for this track"))
+                return@withContext Result.success(authUrl)
             }
+            // Fallback to 160 kbps standard fidelity
+            val fallbackResponse = apiService.generateAuthToken(encryptedMediaUrl = encryptedMediaUrl, bitrate = 160)
+            val fallbackUrl = fallbackResponse.authUrl
+            if (!fallbackUrl.isNullOrBlank()) {
+                return@withContext Result.success(fallbackUrl)
+            }
+            Result.failure(Exception("Stream URL could not be generated for this track"))
         } catch (e: Exception) {
             Log.e(TAG, "Error resolving stream URL", e)
             Result.failure(e)

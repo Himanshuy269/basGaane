@@ -46,8 +46,15 @@ class MusicPlayerController(
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     var onPlaybackEnded: (() -> Unit)? = null
+    var onPlaybackError: ((Exception) -> Unit)? = null
 
     private val playerListener = object : Player.Listener {
+        override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+            android.util.Log.e("MusicPlayerController", "Playback exception occurred: ${error.errorCodeName} - ${error.message}", error)
+            _uiState.update { it.copy(isPlaying = false, isBuffering = false) }
+            onPlaybackError?.invoke(error)
+        }
+
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _uiState.update { it.copy(isPlaying = isPlaying) }
             if (isPlaying) {

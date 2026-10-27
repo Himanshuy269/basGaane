@@ -126,7 +126,7 @@ fun OnlineMusicScreen(
             .fillMaxSize()
             .background(NoctraDark)
     ) {
-        // Global Header: Audio wave logo + "bacGaane" + Profile Avatar
+        // Global Header: Audio wave logo + "basGaane" + Profile Avatar
         BasGaaneTopBar(
             userName = userName,
             isUpdateAvailable = isUpdateAvailable,
@@ -213,7 +213,7 @@ fun OnlineMusicScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "BACGAANE SELECTS / 032",
+                                text = "BASGAANE SELECTS / 032",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = NoctraTextPrimary,
@@ -328,14 +328,24 @@ fun OnlineMusicScreen(
                         )
                     },
                     trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { onSearchQueryChanged("") }) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = "Clear",
-                                    tint = NoctraTextSecondary,
-                                    modifier = Modifier.size(18.dp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isSearching) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    color = NoctraLime,
+                                    strokeWidth = 2.dp
                                 )
+                                Spacer(modifier = Modifier.width(6.dp))
+                            }
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { onSearchQueryChanged("") }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Clear",
+                                        tint = NoctraTextSecondary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     },
@@ -513,6 +523,30 @@ fun OnlineMusicScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(color = NoctraLime, modifier = Modifier.size(36.dp))
+                    }
+                }
+            } else if (onlineSongs.isEmpty()) {
+                item(key = "empty_online") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = if (searchQuery.isBlank()) "No online tracks found" else "No results found for '$searchQuery'",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = NoctraTextSecondary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Try searching for another song, artist, or genre",
+                                fontSize = 13.sp,
+                                color = NoctraTextMuted
+                            )
+                        }
                     }
                 }
             } else {

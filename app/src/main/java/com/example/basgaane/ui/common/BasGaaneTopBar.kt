@@ -26,7 +26,7 @@ import com.example.basgaane.ui.theme.NoctraLime
 
 /**
  * Global Top Header matching the dark minimalist & lime aesthetic.
- * Displays the audio waveform bars logo icon, the "bacGaane" brand title,
+ * Displays the audio waveform bars logo icon, the "basGaane" brand title,
  * and the circular user avatar profile trigger.
  */
 @Composable
@@ -43,7 +43,7 @@ fun BasGaaneTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Brand: Waveform Logo + bacGaane
+        // Brand: Waveform Logo + basGaane
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -93,7 +93,7 @@ fun BasGaaneTopBar(
             Spacer(modifier = Modifier.width(10.dp))
 
             Text(
-                text = "bacGaane",
+                text = "basGaane",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
