@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -85,73 +85,68 @@ fun FullPlayerSheet(
         containerColor = BackgroundDark,
         dragHandle = null
     ) {
-        Scaffold(
-            containerColor = BackgroundDark,
-            contentWindowInsets = WindowInsets.safeDrawing
-        ) { sheetPadding ->
-            LiquidCrystalBackground(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(sheetPadding)
-                        .padding(horizontal = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Header Bar
-                    PlayerHeaderBar(
-                        onDismiss = onDismiss,
-                        onShare = onShare
-                    )
+        LiquidCrystalBackground(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Header Bar
+                PlayerHeaderBar(
+                    onDismiss = onDismiss,
+                    onShare = onShare
+                )
 
-                    Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-                    // Vinyl / Album Art Disc
-                    VinylDisc(
-                        song = song,
-                        isPlaying = isPlaying,
-                        rotation = rotation
-                    )
+                // Vinyl / Album Art Disc
+                VinylDisc(
+                    song = song,
+                    isPlaying = isPlaying,
+                    rotation = rotation
+                )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                    // Song Title, Artist & Friend Attribution
-                    PlayerTrackInfo(
-                        song = song,
-                        isLiked = isLiked,
-                        onToggleLike = onToggleLike,
-                        onShare = onShare
-                    )
+                // Song Title, Artist & Friend Attribution
+                PlayerTrackInfo(
+                    song = song,
+                    isLiked = isLiked,
+                    onToggleLike = onToggleLike,
+                    onShare = onShare
+                )
 
-                    Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-                    // Progress Slider
-                    PlayerProgressSlider(
-                        currentPositionMs = currentPosition,
-                        durationMs = durationMs,
-                        onSeekStart = { isDraggingSlider = true },
-                        onSeekChange = { sliderPosition = it },
-                        onSeekEnd = {
-                            isDraggingSlider = false
-                            onSeek(it)
-                        }
-                    )
+                // Progress Slider
+                PlayerProgressSlider(
+                    currentPositionMs = currentPosition,
+                    durationMs = durationMs,
+                    onSeekStart = { isDraggingSlider = true },
+                    onSeekChange = { sliderPosition = it },
+                    onSeekEnd = {
+                        isDraggingSlider = false
+                        onSeek(it)
+                    }
+                )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                    // Controls Row
-                    PlayerPlaybackControlsRow(
-                        isPlaying = isPlaying,
-                        isShuffle = isShuffle,
-                        repeatMode = repeatMode,
-                        onPlayPause = onPlayPause,
-                        onSkipPrevious = onSkipPrevious,
-                        onSkipNext = onSkipNext,
-                        onToggleShuffle = onToggleShuffle,
-                        onToggleRepeat = onToggleRepeat
-                    )
+                // Controls Row
+                PlayerPlaybackControlsRow(
+                    isPlaying = isPlaying,
+                    isShuffle = isShuffle,
+                    repeatMode = repeatMode,
+                    onPlayPause = onPlayPause,
+                    onSkipPrevious = onSkipPrevious,
+                    onSkipNext = onSkipNext,
+                    onToggleShuffle = onToggleShuffle,
+                    onToggleRepeat = onToggleRepeat
+                )
 
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

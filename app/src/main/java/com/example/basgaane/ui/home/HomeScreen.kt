@@ -34,10 +34,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -91,8 +87,6 @@ fun HomeScreen(
     onOpenEditProfileDialog: () -> Unit,
     updateInfo: AppUpdateInfo? = null,
     onOpenAppUpdateDialog: () -> Unit = {},
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
-    bottomBar: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedFilter by remember { mutableStateOf("Tracks") }
@@ -114,28 +108,11 @@ fun HomeScreen(
         String.format(Locale.US, "%.1f", gb.coerceAtLeast(0.1))
     }
 
-    Scaffold(
-        containerColor = NoctraDark,
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = NoctraSurface,
-                    contentColor = NoctraTextPrimary,
-                    actionColor = NoctraLime,
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-        },
-        bottomBar = bottomBar,
+    Column(
         modifier = modifier
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(NoctraDark)
-                .padding(innerPadding)
-        ) {
+            .fillMaxSize()
+            .background(NoctraDark)
+    ) {
             // Global Header: Audio wave logo + "basGaane" + Profile Avatar
             BasGaaneTopBar(
                 userName = userName,
@@ -405,7 +382,6 @@ fun HomeScreen(
             }
         }
     }
-}
 
 /**
  * Minimalist Song List Item matching Screenshot 4.

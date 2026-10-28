@@ -2,10 +2,13 @@ package com.example.basgaane.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -42,9 +45,10 @@ import com.example.basgaane.ui.player.MiniPlayer
 import com.example.basgaane.ui.playlistdetail.PlaylistDetailScreen
 import com.example.basgaane.ui.playlists.PlaylistsScreen
 import com.example.basgaane.ui.search.SearchScreen
-import com.example.basgaane.ui.theme.NeonCyan
-import com.example.basgaane.ui.theme.SurfaceDarkVariant
-import com.example.basgaane.ui.theme.TextPrimary
+import com.example.basgaane.ui.theme.NoctraDark
+import com.example.basgaane.ui.theme.NoctraLime
+import com.example.basgaane.ui.theme.NoctraSurface
+import com.example.basgaane.ui.theme.NoctraTextPrimary
 
 /**
  * Central navigation controller and host for the BasGaane application.
@@ -148,7 +152,58 @@ fun AppNavigation(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val isTopLevelDestination = currentRoute in listOf(
+        NavigationRoutes.HOME,
+        NavigationRoutes.ONLINE,
+        NavigationRoutes.SEARCH,
+        NavigationRoutes.PLAYLISTS,
+        null
+    )
+
+    Scaffold(
+        containerColor = NoctraDark,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = NoctraSurface,
+                    contentColor = NoctraTextPrimary,
+                    actionColor = NoctraLime,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+        },
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+            ) {
+                MiniPlayer(
+                    currentSong = playerState.currentSong,
+                    isPlaying = playerState.isPlaying,
+                    progressMs = playerState.currentPositionMs,
+                    durationMs = playerState.durationMs,
+                    onPlayPause = viewModel::togglePlayPause,
+                    onSkipNext = viewModel::skipNext,
+                    onClick = viewModel::showFullPlayer
+                )
+
+                if (isTopLevelDestination) {
+                    AppBottomNavigationBar(
+                        selectedTab = selectedTab,
+                        onTabSelected = onTabSelected
+                    )
+                }
+            }
+        }
+    ) { _ ->
         NavHost(
             navController = navController,
             startDestination = NavigationRoutes.HOME,
@@ -172,8 +227,7 @@ fun AppNavigation(
                     onAddMusicClick = viewModel::openAddMusicDialog,
                     onOpenEditProfileDialog = viewModel::openEditProfileDialog,
                     updateInfo = updateInfo,
-                    onOpenAppUpdateDialog = viewModel::openAppUpdateDialog,
-                    snackbarHostState = snackbarHostState
+                    onOpenAppUpdateDialog = viewModel::openAppUpdateDialog
                 )
             }
 
@@ -287,55 +341,6 @@ fun AppNavigation(
                     )
                 }
             }
-        }
-
-        // Persistent Dock: MiniPlayer + Bottom Navigation Bar
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
-        val isTopLevelDestination = currentRoute in listOf(
-            NavigationRoutes.HOME,
-            NavigationRoutes.ONLINE,
-            NavigationRoutes.SEARCH,
-            NavigationRoutes.PLAYLISTS,
-            null
-        )
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .navigationBarsPadding()
-        ) {
-            MiniPlayer(
-                currentSong = playerState.currentSong,
-                isPlaying = playerState.isPlaying,
-                progressMs = playerState.currentPositionMs,
-                durationMs = playerState.durationMs,
-                onPlayPause = viewModel::togglePlayPause,
-                onSkipNext = viewModel::skipNext,
-                onClick = viewModel::showFullPlayer
-            )
-
-            if (isTopLevelDestination) {
-                AppBottomNavigationBar(
-                    selectedTab = selectedTab,
-                    onTabSelected = onTabSelected
-                )
-            }
-        }
-
-        // Global Snackbar Host
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) { data ->
-            Snackbar(
-                snackbarData = data,
-                containerColor = SurfaceDarkVariant,
-                contentColor = TextPrimary,
-                actionColor = NeonCyan,
-                shape = RoundedCornerShape(12.dp)
-            )
         }
     }
 
