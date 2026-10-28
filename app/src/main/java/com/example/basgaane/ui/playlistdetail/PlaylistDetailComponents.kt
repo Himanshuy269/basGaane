@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -306,6 +307,7 @@ fun PlaylistItemCard(
     isSelected: Boolean,
     isPlaying: Boolean,
     onClick: () -> Unit,
+    onShare: (() -> Unit)? = null,
     onRemove: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -402,6 +404,21 @@ fun PlaylistItemCard(
                     color = TextTertiary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            if (onShare != null) {
+                IconButton(
+                    onClick = onShare,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Share track",
+                        tint = TextTertiary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
             }
 
             IconButton(

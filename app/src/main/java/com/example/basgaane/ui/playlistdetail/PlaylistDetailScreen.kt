@@ -31,6 +31,7 @@ fun PlaylistDetailScreen(
     onPlayAll: (List<Song>) -> Unit,
     onShufflePlay: (List<Song>) -> Unit,
     onSongClick: (Song, List<Song>) -> Unit,
+    onShareSong: ((Song) -> Unit)? = null,
     onRemoveSongFromPlaylist: (songId: String) -> Unit,
     onDeletePlaylist: () -> Unit,
     modifier: Modifier = Modifier
@@ -107,6 +108,7 @@ fun PlaylistDetailScreen(
                             isSelected = isCurrent,
                             isPlaying = isCurrent && isPlaying,
                             onClick = { onSongClick(song, playlistSongs) },
+                            onShare = { onShareSong?.invoke(song) },
                             onRemove = { onRemoveSongFromPlaylist(song.id) }
                         )
                     }

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -97,6 +98,7 @@ fun OnlineMusicScreen(
     onOpenEditProfileDialog: () -> Unit = {},
     onSongClick: (JioSaavnSongItem) -> Unit,
     onToggleLike: (JioSaavnSongItem) -> Unit = {},
+    onShareSong: ((JioSaavnSongItem) -> Unit)? = null,
     onAddToPlaylistClick: (Song) -> Unit,
     onCreatePlaylistClick: () -> Unit = {},
     onSaveResultsAsPlaylist: () -> Unit = {},
@@ -566,6 +568,7 @@ fun OnlineMusicScreen(
                         isLiked = isLiked,
                         onSongClick = { onSongClick(songItem) },
                         onToggleLike = { onToggleLike(songItem) },
+                        onShare = { onShareSong?.invoke(songItem) },
                         onAddToPlaylist = {
                             val domainSong = Song(
                                 id = songItem.id ?: songItem.cleanTitle.hashCode().toString(),
@@ -632,6 +635,7 @@ fun NoctraOnlineSongListItem(
     isLiked: Boolean,
     onSongClick: () -> Unit,
     onToggleLike: () -> Unit,
+    onShare: (() -> Unit)? = null,
     onAddToPlaylist: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -719,6 +723,21 @@ fun NoctraOnlineSongListItem(
                 tint = if (isLiked) NoctraLime else NoctraTextMuted,
                 modifier = Modifier.size(19.dp)
             )
+        }
+
+        // Share Button
+        if (onShare != null) {
+            IconButton(
+                onClick = onShare,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share",
+                    tint = NoctraTextMuted,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
 
         // 3-dot Add to Playlist Button

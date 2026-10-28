@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -72,6 +73,7 @@ import com.example.basgaane.ui.theme.TextTertiary
 @Composable
 fun PlayerHeaderBar(
     onDismiss: () -> Unit,
+    onShare: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -97,7 +99,18 @@ fun PlayerHeaderBar(
             color = PrismCyan
         )
 
-        Spacer(modifier = Modifier.size(32.dp))
+        if (onShare != null) {
+            IconButton(onClick = onShare) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share",
+                    tint = TextPrimary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        } else {
+            Spacer(modifier = Modifier.size(32.dp))
+        }
     }
 }
 
@@ -179,13 +192,14 @@ fun VinylDisc(
 }
 
 /**
- * Track title, artist name, like button, and contributor attribution pill.
+ * Track title, artist name, like button, share button, and contributor attribution pill.
  */
 @Composable
 fun PlayerTrackInfo(
     song: Song,
     isLiked: Boolean = false,
     onToggleLike: (() -> Unit)? = null,
+    onShare: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -196,7 +210,19 @@ fun PlayerTrackInfo(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (onToggleLike != null) {
+            if (onShare != null) {
+                IconButton(
+                    onClick = onShare,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Share",
+                        tint = TextTertiary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            } else if (onToggleLike != null) {
                 Spacer(modifier = Modifier.size(40.dp))
             }
 
@@ -226,6 +252,8 @@ fun PlayerTrackInfo(
                         modifier = Modifier.size(24.dp)
                     )
                 }
+            } else if (onShare != null) {
+                Spacer(modifier = Modifier.size(40.dp))
             }
         }
 

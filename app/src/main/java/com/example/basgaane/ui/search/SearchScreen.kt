@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -99,6 +100,8 @@ fun SearchScreen(
     onSongClick: (Song) -> Unit,
     onOnlineSongClick: (JioSaavnSongItem) -> Unit = {},
     onToggleLikeOnline: (JioSaavnSongItem) -> Unit = {},
+    onShareSong: ((Song) -> Unit)? = null,
+    onShareOnlineSong: ((JioSaavnSongItem) -> Unit)? = null,
     onAddToPlaylistClick: (Song) -> Unit,
     onDeleteSong: (Song) -> Unit,
     selectedTab: HomeTab = HomeTab.SEARCH,
@@ -468,6 +471,7 @@ fun SearchScreen(
                         isLiked = isLiked,
                         onClick = { onOnlineSongClick(item) },
                         onToggleLike = { onToggleLikeOnline(item) },
+                        onShare = { onShareOnlineSong?.invoke(item) },
                         onAddToPlaylist = {
                             val song = Song(
                                 id = songId,
@@ -525,6 +529,7 @@ fun SearchScreen(
                         isSelected = isSelected,
                         isPlaying = isSelected && isPlaying,
                         onClick = { onSongClick(song) },
+                        onShare = { onShareSong?.invoke(song) },
                         onAddToPlaylist = { onAddToPlaylistClick(song) },
                         onDelete = { onDeleteSong(song) }
                     )
@@ -594,6 +599,7 @@ fun NoctraSearchOnlineSongItem(
     isLiked: Boolean,
     onClick: () -> Unit,
     onToggleLike: () -> Unit,
+    onShare: (() -> Unit)? = null,
     onAddToPlaylist: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -684,6 +690,21 @@ fun NoctraSearchOnlineSongItem(
             )
         }
 
+        // Share Button
+        if (onShare != null) {
+            IconButton(
+                onClick = onShare,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share",
+                    tint = NoctraTextMuted,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
         // Add to Playlist Button
         IconButton(
             onClick = onAddToPlaylist,
@@ -705,6 +726,7 @@ fun NoctraSearchSongItem(
     isSelected: Boolean,
     isPlaying: Boolean,
     onClick: () -> Unit,
+    onShare: (() -> Unit)? = null,
     onAddToPlaylist: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -801,6 +823,22 @@ fun NoctraSearchSongItem(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false }
             ) {
+                if (onShare != null) {
+                    DropdownMenuItem(
+                        text = { Text("Share Track", color = NoctraTextPrimary) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Share,
+                                contentDescription = null,
+                                tint = NoctraLime
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            onShare()
+                        }
+                    )
+                }
                 DropdownMenuItem(
                     text = { Text("Add to Playlist", color = NoctraTextPrimary) },
                     leadingIcon = {

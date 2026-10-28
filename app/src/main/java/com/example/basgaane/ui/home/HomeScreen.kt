@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.RocketLaunch
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -83,6 +84,7 @@ fun HomeScreen(
     themeMode: ThemeMode,
     onToggleTheme: () -> Unit,
     onSongClick: (Song) -> Unit,
+    onShareSong: ((Song) -> Unit)? = null,
     onAddToPlaylistClick: (Song) -> Unit,
     onDeleteSong: (Song) -> Unit,
     onAddMusicClick: () -> Unit,
@@ -394,6 +396,7 @@ fun HomeScreen(
                             isSelected = isSelected,
                             isPlaying = isSelected && isPlaying,
                             onClick = { onSongClick(song) },
+                            onShare = { onShareSong?.invoke(song) },
                             onAddToPlaylist = { onAddToPlaylistClick(song) },
                             onDelete = { onDeleteSong(song) }
                         )
@@ -413,6 +416,7 @@ fun NoctraSongListItem(
     isSelected: Boolean,
     isPlaying: Boolean,
     onClick: () -> Unit,
+    onShare: (() -> Unit)? = null,
     onAddToPlaylist: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -509,6 +513,22 @@ fun NoctraSongListItem(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false }
             ) {
+                if (onShare != null) {
+                    DropdownMenuItem(
+                        text = { Text("Share Track", color = NoctraTextPrimary) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Share,
+                                contentDescription = null,
+                                tint = NoctraLime
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            onShare()
+                        }
+                    )
+                }
                 DropdownMenuItem(
                     text = { Text("Add to Playlist", color = NoctraTextPrimary) },
                     leadingIcon = {

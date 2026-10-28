@@ -46,6 +46,7 @@ fun FullPlayerSheet(
     repeatMode: Int,
     isLiked: Boolean = false,
     onToggleLike: (() -> Unit)? = null,
+    onShare: (() -> Unit)? = null,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSkipNext: () -> Unit,
@@ -97,7 +98,10 @@ fun FullPlayerSheet(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Header Bar
-                    PlayerHeaderBar(onDismiss = onDismiss)
+                    PlayerHeaderBar(
+                        onDismiss = onDismiss,
+                        onShare = onShare
+                    )
 
                     Spacer(modifier = Modifier.height(28.dp))
 
@@ -114,7 +118,8 @@ fun FullPlayerSheet(
                     PlayerTrackInfo(
                         song = song,
                         isLiked = isLiked,
-                        onToggleLike = onToggleLike
+                        onToggleLike = onToggleLike,
+                        onShare = onShare
                     )
 
                     Spacer(modifier = Modifier.height(28.dp))

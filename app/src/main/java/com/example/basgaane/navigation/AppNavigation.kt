@@ -17,8 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
+import com.example.basgaane.core.util.ShareUtils
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -53,6 +55,7 @@ fun AppNavigation(
     viewModel: MusicViewModel = viewModel()
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
     val allSongs by viewModel.allSongs.collectAsState()
     val filteredSongs by viewModel.filteredSongs.collectAsState()
@@ -163,6 +166,7 @@ fun AppNavigation(
                     themeMode = themeMode,
                     onToggleTheme = viewModel::toggleTheme,
                     onSongClick = viewModel::playSong,
+                    onShareSong = { song -> ShareUtils.shareSong(context, song) },
                     onAddToPlaylistClick = viewModel::openAddToPlaylistDialog,
                     onDeleteSong = viewModel::deleteSong,
                     onAddMusicClick = viewModel::openAddMusicDialog,
@@ -194,6 +198,7 @@ fun AppNavigation(
                     currentSong = currentSong,
                     isPlaying = isPlaying,
                     onSongClick = viewModel::playOnlineSong,
+                    onShareSong = { item -> ShareUtils.shareOnlineItem(context, item) },
                     onAddToPlaylistClick = viewModel::openAddToPlaylistDialog,
                     onCreatePlaylistClick = viewModel::openCreatePlaylistDialog,
                     onSaveResultsAsPlaylist = viewModel::openSaveOnlinePlaylistDialog
@@ -221,6 +226,8 @@ fun AppNavigation(
                     onSongClick = viewModel::playSong,
                     onOnlineSongClick = viewModel::playOnlineSong,
                     onToggleLikeOnline = viewModel::toggleLikeOnlineSong,
+                    onShareSong = { song -> ShareUtils.shareSong(context, song) },
+                    onShareOnlineSong = { item -> ShareUtils.shareOnlineItem(context, item) },
                     onAddToPlaylistClick = viewModel::openAddToPlaylistDialog,
                     onDeleteSong = viewModel::deleteSong,
                     selectedTab = selectedTab,
@@ -269,6 +276,7 @@ fun AppNavigation(
                         onPlayAll = { songs -> viewModel.playPlaylist(songs, null) },
                         onShufflePlay = { songs -> viewModel.playPlaylist(songs.shuffled(), null) },
                         onSongClick = { targetSong, songs -> viewModel.playPlaylist(songs, targetSong) },
+                        onShareSong = { song -> ShareUtils.shareSong(context, song) },
                         onRemoveSongFromPlaylist = { songId ->
                             viewModel.removeSongFromPlaylist(playlist.id, songId)
                         },
@@ -436,6 +444,7 @@ fun AppNavigation(
             repeatMode = playerState.repeatMode,
             isLiked = playerState.currentSong?.id?.let { likedSongIds.contains(it) } == true,
             onToggleLike = { playerState.currentSong?.let { viewModel.toggleLikeSong(it) } },
+            onShare = { playerState.currentSong?.let { ShareUtils.shareSong(context, it) } },
             onPlayPause = viewModel::togglePlayPause,
             onSeek = viewModel::seekTo,
             onSkipNext = viewModel::skipNext,

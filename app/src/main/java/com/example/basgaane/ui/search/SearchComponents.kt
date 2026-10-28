@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -201,6 +202,7 @@ fun SearchSongItemCard(
     isSelected: Boolean,
     isPlaying: Boolean,
     onClick: () -> Unit,
+    onShare: (() -> Unit)? = null,
     onAddToPlaylist: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -350,6 +352,19 @@ fun SearchSongItemCard(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false }
                 ) {
+                    if (onShare != null) {
+                        DropdownMenuItem(
+                            text = { Text("Share Track", color = TextPrimary) },
+                            leadingIcon = {
+                                Icon(Icons.Default.Share, contentDescription = null, tint = NeonCyan)
+                            },
+                            onClick = {
+                                showMenu = false
+                                onShare()
+                            }
+                        )
+                    }
+
                     DropdownMenuItem(
                         text = { Text("Add to Playlist", color = TextPrimary) },
                         leadingIcon = {
