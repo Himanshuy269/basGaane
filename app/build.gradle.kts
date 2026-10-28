@@ -4,6 +4,10 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+base {
+    archivesName.set("basGaane")
+}
+
 android {
     namespace = "com.example.basgaane"
     compileSdk = 37
@@ -12,8 +16,8 @@ android {
         applicationId = "com.example.basgaane"
         minSdk = 24
         targetSdk = 35
-        versionCode = (project.findProperty("appVersionCode") as? String)?.toIntOrNull() ?: 14
-        versionName = (project.findProperty("appVersionName") as? String) ?: "1.1.3"
+        versionCode = (project.findProperty("appVersionCode") as? String)?.toIntOrNull() ?: 15
+        versionName = (project.findProperty("appVersionName") as? String) ?: "1.1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +54,21 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+tasks.matching { it.name == "assembleRelease" }.configureEach {
+    doLast {
+        val releaseDir = layout.buildDirectory.dir("outputs/apk/release").get().asFile
+        val apkFile = releaseDir.listFiles()?.firstOrNull { it.extension == "apk" }
+        if (apkFile != null) {
+            val basGaaneApk = File(releaseDir, "basGaane.apk")
+            if (apkFile.absolutePath != basGaaneApk.absolutePath) {
+                apkFile.copyTo(basGaaneApk, overwrite = true)
+            }
+            apkFile.copyTo(rootProject.file("basGaane.apk"), overwrite = true)
+            apkFile.copyTo(rootProject.file("basGaane-v${android.defaultConfig.versionName}.apk"), overwrite = true)
+        }
     }
 }
 
