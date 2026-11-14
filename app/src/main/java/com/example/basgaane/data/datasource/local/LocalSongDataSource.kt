@@ -52,6 +52,15 @@ class LocalSongDataSource(context: Context) {
         persist(current)
     }
 
+    fun saveSongs(songs: List<Song>) {
+        if (songs.isEmpty()) return
+        val current = getLocalSongs()
+        val incomingIds = songs.map { it.id }.toSet()
+        current.removeAll { it.id in incomingIds }
+        current.addAll(0, songs)
+        persist(current)
+    }
+
     fun removeSong(songId: String) {
         val current = getLocalSongs()
         current.removeAll { it.id == songId }

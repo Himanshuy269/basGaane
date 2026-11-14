@@ -40,6 +40,7 @@ class MusicRepositoryImpl(
             remoteDataSource.observeRemoteSongs().collect { remoteList ->
                 Log.d(TAG, "Syncing remote songs: ${remoteList.size} tracks found on cloud.")
                 cachedRemoteSongs = remoteList
+                localDataSource.saveSongs(remoteList)
                 combineAndEmit()
             }
         }
@@ -194,6 +195,15 @@ class MusicRepositoryImpl(
 
     override suspend fun addSong(song: Song): Result<Song> = withContext(Dispatchers.IO) {
         localDataSource.saveSong(song)
+        // Asynchronously persist track metadata to Firestore so that Liked Songs and user playlists
+        // survive app uninstallation and are immediately restored upon reinstall.
+        coroutineScope.launch {
+            try {
+                remoteDataSource.saveSongDocument(song)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to sync song document to Firestore: ${e.message}")
+            }
+        }
         combineAndEmit()
         Result.success(song)
     }

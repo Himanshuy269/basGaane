@@ -51,19 +51,57 @@ class PlaylistRepositoryImpl(
         val localList = localDataSource.getLocalPlaylists()
         val combinedMap = linkedMapOf<String, Playlist>()
 
-        // 1. Cloud playlists
-        for (pl in cachedRemotePlaylists) {
-            combinedMap[pl.id] = pl
-        }
-
-        // 2. Local playlists
-        for (pl in localList) {
-            if (!combinedMap.containsKey(pl.id)) {
-                combinedMap[pl.id] = pl
+        // 1. Process local playlists and union merge with remote counterparts
+        for (localPl in localList) {
+            val remotePl = cachedRemotePlaylists.find { it.id == localPl.id }
+            if (remotePl != null) {
+                val mergedSongIds = (localPl.songIds + remotePl.songIds).distinct()
+                val mergedPl = localPl.copy(
+                    songIds = mergedSongIds,
+                    name = if (localPl.name.isNotBlank()) localPl.name else remotePl.name,
+                    description = if (localPl.description.isNotBlank()) localPl.description else remotePl.description,
+                    coverUrl = localPl.coverUrl ?: remotePl.coverUrl
+                )
+                // If local storage was missing items (e.g. fresh reinstall), save merged list to local prefs
+                if (mergedSongIds.size > localPl.songIds.size) {
+                    localDataSource.savePlaylist(mergedPl)
+                }
+                // If remote cloud was missing items, upload merged list to Firestore
+                if (mergedSongIds.size > remotePl.songIds.size) {
+                    coroutineScope.launch {
+                        remoteDataSource.savePlaylistDocument(mergedPl)
+                    }
+                }
+                combinedMap[mergedPl.id] = mergedPl
+            } else {
+                combinedMap[localPl.id] = localPl
+                if (localPl.id == LocalPlaylistDataSource.LIKED_SONGS_PLAYLIST_ID && localPl.songIds.isNotEmpty()) {
+                    coroutineScope.launch {
+                        remoteDataSource.savePlaylistDocument(localPl)
+                    }
+                }
             }
         }
 
-        _playlistsFlow.value = combinedMap.values.sortedByDescending { it.createdAt }
+        // 2. Add any cloud playlists not yet stored locally
+        for (remotePl in cachedRemotePlaylists) {
+            if (!combinedMap.containsKey(remotePl.id)) {
+                combinedMap[remotePl.id] = remotePl
+                localDataSource.savePlaylist(remotePl)
+            }
+        }
+
+        // 3. Ensure Liked Songs playlist is always pinned at the top
+        val sortedList = combinedMap.values.sortedByDescending { it.createdAt }.toMutableList()
+        val likedIndex = sortedList.indexOfFirst {
+            it.id == LocalPlaylistDataSource.LIKED_SONGS_PLAYLIST_ID || it.name.equals("Liked Songs", ignoreCase = true)
+        }
+        if (likedIndex > 0) {
+            val liked = sortedList.removeAt(likedIndex)
+            sortedList.add(0, liked)
+        }
+
+        _playlistsFlow.value = sortedList
     }
 
     override suspend fun createPlaylist(name: String, description: String): Result<Playlist> =
@@ -88,6 +126,7 @@ class PlaylistRepositoryImpl(
     override suspend fun deletePlaylist(playlistId: String): Result<Unit> =
         withContext(Dispatchers.IO) {
             localDataSource.deletePlaylist(playlistId)
+            cachedRemotePlaylists = cachedRemotePlaylists.filter { it.id != playlistId }
             remoteDataSource.deletePlaylistDocument(playlistId)
             combineAndEmit()
             Result.success(Unit)
@@ -102,6 +141,9 @@ class PlaylistRepositoryImpl(
                 }
 
             if (updated != null) {
+                cachedRemotePlaylists = cachedRemotePlaylists.map {
+                    if (it.id == playlistId) updated else it
+                }
                 remoteDataSource.savePlaylistDocument(updated)
             }
             combineAndEmit()
@@ -117,6 +159,9 @@ class PlaylistRepositoryImpl(
                 }
 
             if (updated != null) {
+                cachedRemotePlaylists = cachedRemotePlaylists.map {
+                    if (it.id == playlistId) updated else it
+                }
                 remoteDataSource.savePlaylistDocument(updated)
             }
             combineAndEmit()
