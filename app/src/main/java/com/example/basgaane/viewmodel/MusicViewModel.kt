@@ -289,8 +289,7 @@ class MusicViewModel(
 
     private fun handlePlaybackError(error: Exception) {
         if (isOnlinePlaybackActive) {
-            _userMessage.value = "Streaming error, playing next song..."
-            playNextOnlineSong()
+            _userMessage.value = "Playback error. Tap to retry or select another track."
         } else {
             _userMessage.value = "Unable to play audio file"
         }
@@ -361,8 +360,17 @@ class MusicViewModel(
     private var currentOnlineIndex: Int = -1
     private var isOnlinePlaybackActive: Boolean = false
     private var activeOnlineType: String = ""
+    private var streamResolveJob: Job? = null
 
     fun playOnlineSong(item: JioSaavnSongItem) {
+        // If this song is ALREADY loaded in the player, quickly toggle play/pause without network delay
+        val current = playerController.uiState.value.currentSong
+        if (current != null && (current.id == item.id || current.title.equals(item.cleanTitle, ignoreCase = true))) {
+            togglePlayPause()
+            showFullPlayer()
+            return
+        }
+
         isOnlinePlaybackActive = true
         activeOnlineType = _selectedOnlineGenre.value.ifBlank {
             _onlineSearchQuery.value.ifBlank {
@@ -380,21 +388,27 @@ class MusicViewModel(
         _onlineQueue.value = queue
         currentOnlineIndex = queue.indexOfFirst { it.id == item.id || it.cleanTitle == item.cleanTitle }.coerceAtLeast(0)
 
-        streamAndPlayOnlineItem(item)
+        streamAndPlayOnlineItem(item, isUserInitiated = true)
         showFullPlayer()
     }
 
-    private fun streamAndPlayOnlineItem(item: JioSaavnSongItem) {
+    private fun streamAndPlayOnlineItem(item: JioSaavnSongItem, isUserInitiated: Boolean = true) {
         val encryptedToken = item.encryptedMediaUrl
         if (encryptedToken.isNullOrBlank()) {
             _userMessage.value = "Cannot stream this track (media token unavailable)"
-            playNextOnlineSong()
+            if (!isUserInitiated) {
+                playNextOnlineSong()
+            }
             return
         }
-        viewModelScope.launch {
+
+        // Cancel any pending resolution for a previous song to prevent it from hijacking playback
+        streamResolveJob?.cancel()
+        streamResolveJob = viewModelScope.launch {
             _resolvingOnlineSongId.value = item.id
             val result = onlineMusicRepository.resolveStreamUrl(encryptedToken)
             _resolvingOnlineSongId.value = null
+
             result.onSuccess { streamUrl ->
                 val song = Song(
                     id = item.id ?: UUID.randomUUID().toString(),
@@ -410,8 +424,45 @@ class MusicViewModel(
                 playerController.playSong(song, listOf(song))
             }.onFailure { error ->
                 android.util.Log.e("MusicViewModel", "Failed to stream audio for '${item.cleanTitle}': ${error.localizedMessage}")
-                _userMessage.value = "Skipping track (stream unavailable)"
-                playNextOnlineSong()
+                var fallbackSuccess = false
+                if (encryptedToken.startsWith("yt:")) {
+                    // Invidious stream failed: attempt quick JioSaavn fallback for the clean song title
+                    try {
+                        val jioResults = onlineMusicRepository.searchSongs(item.cleanTitle).getOrNull()
+                        val matched = jioResults?.firstOrNull {
+                            it.cleanTitle.equals(item.cleanTitle, ignoreCase = true) || !it.encryptedMediaUrl.isNullOrBlank()
+                        }
+                        val matchedToken = matched?.encryptedMediaUrl
+                        if (matched != null && !matchedToken.isNullOrBlank()) {
+                            val fallbackUrl = onlineMusicRepository.resolveStreamUrl(matchedToken).getOrNull()
+                            if (!fallbackUrl.isNullOrBlank()) {
+                                fallbackSuccess = true
+                                val song = Song(
+                                    id = item.id ?: UUID.randomUUID().toString(),
+                                    title = item.cleanTitle,
+                                    artist = item.cleanArtist,
+                                    audioUrl = fallbackUrl,
+                                    coverUrl = item.hdCoverUrl ?: matched.hdCoverUrl,
+                                    durationMs = item.durationMs,
+                                    isLocal = false,
+                                    addedBy = "Online Stream"
+                                )
+                                playerController.playSong(song, listOf(song))
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("MusicViewModel", "Dual-engine fallback resolution failed", e)
+                    }
+                }
+
+                if (!fallbackSuccess) {
+                    if (isUserInitiated) {
+                        _userMessage.value = "Unable to stream '${item.cleanTitle}'. Please choose another track."
+                        // Preserves user selection — does NOT auto-switch to an unexpected song!
+                    } else {
+                        playNextOnlineSong()
+                    }
+                }
             }
         }
     }
@@ -434,7 +485,7 @@ class MusicViewModel(
                 // Play next song in existing online queue
                 currentOnlineIndex = nextIndex
                 val nextItem = queue[nextIndex]
-                streamAndPlayOnlineItem(nextItem)
+                streamAndPlayOnlineItem(nextItem, isUserInitiated = false)
             } else {
                 // End of queue reached: automatically discover more songs of the SAME type
                 val currentSong = playerController.uiState.value.currentSong
@@ -710,6 +761,13 @@ class MusicViewModel(
     }
 
     fun playSong(song: Song, customQueue: List<Song>? = null) {
+        val cur = playerController.uiState.value.currentSong
+        if (cur != null && cur.id == song.id) {
+            togglePlayPause()
+            showFullPlayer()
+            return
+        }
+
         if (song.isLocal || song.addedBy != "Online Stream") {
             isOnlinePlaybackActive = false
             val queue = customQueue ?: filteredSongs.value
@@ -723,7 +781,8 @@ class MusicViewModel(
         activeOnlineType = song.artist.takeIf { it.isNotBlank() && it != "Unknown Artist" } ?: "Online Stream"
 
         if (!song.audioUrl.startsWith("http") || !song.audioUrl.contains(".mp4")) {
-            viewModelScope.launch {
+            streamResolveJob?.cancel()
+            streamResolveJob = viewModelScope.launch {
                 _resolvingOnlineSongId.value = song.id
                 val result = onlineMusicRepository.resolveStreamUrl(song.audioUrl)
                 _resolvingOnlineSongId.value = null

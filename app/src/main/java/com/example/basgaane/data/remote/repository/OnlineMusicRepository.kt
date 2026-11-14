@@ -356,13 +356,9 @@ class OnlineMusicRepository {
             titleLower.contains("reprise") || titleLower.contains("instrumental")
         } ?: false
 
-        val globalHasMassiveOriginal = globalResults.any {
-            val views = it.playCount?.toLongOrNull() ?: 0L
-            views > 10_000_000L && it.cleanTitle.lowercase().contains(qLower.split(" ")[0])
-        }
-
-        if (isDelistedArtistQuery || jioTopIsRemixOrCover || globalHasMassiveOriginal) {
-            // Prioritize Global Original Hits at the top
+        // Prioritize Global results ONLY when JioSaavn has no original (delisted, remix only, or empty)
+        if (isDelistedArtistQuery || jioTopIsRemixOrCover) {
+            // Prioritize Global Original Hits at the top for delisted songs
             val sortedGlobal = globalResults.sortedByDescending { it.playCount?.toLongOrNull() ?: 0L }
             val resultList = mutableListOf<JioSaavnSongItem>()
 
@@ -448,12 +444,12 @@ class OnlineMusicRepository {
 
                         // 1. Try AAC / m4a (itag 140 or audio/mp4)
                         val aacFormat = detail.adaptiveFormats?.firstOrNull {
-                            it.itag == "140" || (it.type?.contains("audio/mp4") == true)
+                            !it.url.isNullOrBlank() && (it.itag == "140" || it.type?.contains("audio/mp4") == true)
                         }
 
                         // 2. Try any audio format with highest bitrate (e.g. itag 251 opus)
                         val anyAudioFormat = detail.adaptiveFormats?.filter {
-                            it.type?.contains("audio") == true && !it.url.isNullOrBlank()
+                            !it.url.isNullOrBlank() && it.type?.contains("audio") == true
                         }?.maxByOrNull { it.bitrate?.toLongOrNull() ?: 0L }
 
                         // 3. Fallback to formatStreams (audio+video container)
@@ -480,17 +476,24 @@ class OnlineMusicRepository {
         }
 
         // JioSaavn stream resolution
+        val cachedJio = streamUrlCache[encryptedMediaUrl]
+        if (!cachedJio.isNullOrBlank()) {
+            return@withContext Result.success(cachedJio)
+        }
+
         try {
             // First try 320 kbps high fidelity
             val response = apiService.generateAuthToken(encryptedMediaUrl = encryptedMediaUrl, bitrate = 320)
             val authUrl = response.authUrl
             if (!authUrl.isNullOrBlank()) {
+                streamUrlCache[encryptedMediaUrl] = authUrl
                 return@withContext Result.success(authUrl)
             }
             // Fallback to 160 kbps standard fidelity
             val fallbackResponse = apiService.generateAuthToken(encryptedMediaUrl = encryptedMediaUrl, bitrate = 160)
             val fallbackUrl = fallbackResponse.authUrl
             if (!fallbackUrl.isNullOrBlank()) {
+                streamUrlCache[encryptedMediaUrl] = fallbackUrl
                 return@withContext Result.success(fallbackUrl)
             }
             Result.failure(Exception("Stream URL could not be generated for this track"))

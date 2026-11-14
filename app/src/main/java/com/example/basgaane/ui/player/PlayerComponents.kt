@@ -38,6 +38,10 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +49,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -166,7 +171,7 @@ fun VinylDisc(
                     .padding(12.dp)
                     .clip(CircleShape)
                     .background(Color(0xFF131724))
-                    .rotate(if (isPlaying) rotation else 0f),
+                    .graphicsLayer { rotationZ = if (isPlaying) rotation else 0f },
                 contentAlignment = Alignment.Center
             ) {
                 SongCoverImage(
@@ -338,16 +343,25 @@ fun PlayerProgressSlider(
     modifier: Modifier = Modifier
 ) {
     val maxDuration = durationMs.coerceAtLeast(1L).toFloat()
+    var isUserInteracting by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var userSliderPos by remember { mutableFloatStateOf(currentPositionMs.toFloat().coerceIn(0f, maxDuration)) }
+
+    val displayPos = if (isUserInteracting) userSliderPos else currentPositionMs.toFloat().coerceIn(0f, maxDuration)
 
     Column(modifier = modifier.fillMaxWidth()) {
         Slider(
-            value = currentPositionMs.toFloat().coerceIn(0f, maxDuration),
+            value = displayPos,
             onValueChange = {
-                onSeekStart()
+                if (!isUserInteracting) {
+                    isUserInteracting = true
+                    onSeekStart()
+                }
+                userSliderPos = it
                 onSeekChange(it)
             },
             onValueChangeFinished = {
-                onSeekEnd(currentPositionMs)
+                isUserInteracting = false
+                onSeekEnd(userSliderPos.toLong())
             },
             valueRange = 0f..maxDuration,
             colors = SliderDefaults.colors(
@@ -363,7 +377,7 @@ fun PlayerProgressSlider(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = formatPlayerMs(currentPositionMs),
+                text = formatPlayerMs(displayPos.toLong()),
                 style = MaterialTheme.typography.labelMedium,
                 color = TextTertiary
             )

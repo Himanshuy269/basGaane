@@ -157,13 +157,21 @@ class MusicPlayerController(
 
     fun togglePlayPause() {
         val controller = mediaController ?: return
-        if (controller.isPlaying) {
+        val currentlyPlaying = _uiState.value.isPlaying
+        val willPlay = !currentlyPlaying
+
+        // Optimistic UI update: immediately toggle icon state in 0ms
+        _uiState.update { it.copy(isPlaying = willPlay) }
+
+        if (!willPlay) {
             controller.pause()
+            stopProgressTracker()
         } else {
             if (controller.playbackState == Player.STATE_IDLE && _uiState.value.currentSong != null) {
                 _uiState.value.currentSong?.let { playSong(it) }
             } else {
                 controller.play()
+                startProgressTracker()
             }
         }
     }
